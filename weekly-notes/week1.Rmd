@@ -1,0 +1,75 @@
+---
+title: "0828"
+output: html_document
+date: "2026-08-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 0828 Notes
+What is a website?
+ A folder of html files -> Quarto (code chunck + text)
+ + A computer that is always on -> Github Pages
+ 
+ Quarto 
+ Qmd (you wirte) -> quarto (machine) -> html (web page)
+                    Render
+what ahppens in the machine?
+1. read files from top to bottom
+2. finds code chunks
+3. send them to R, get results back
+4. glues texts + results into html
+
+anatomy of a .qmd
+--- (no space, 3 dashes)
+title: "
+date: 2026-08-28
+---
+YAML: a mark up langauge  
+
+Markdown: .md
+
+### what i learned today (title)
+your writing
+
+code chuncks 
+```{r}
+library(tidycensus)
+```
+
+files + folders:
+who is this for? 
+ for me (a page/wrote)
+ - index.qmd
+ - about.qmd
+ - weekly_notes.qmd
+ - assignment.qmd
+
+For the machine:
+ - quarto.yml (setting for whole website
+ - freeze
+ 
+ Rproj -> Rstudio
+ .gitignore -> git
+ Renviron -> R (secret)
+ doc -> the link to website
+ 
+ "index" 
+ - website rule: as for a folder you get that folders index.html
+ your github.io -> docs/index.html
+ your github.io/weekly_notes -> docs, weekly nots/index.html
+ 
+ GIT/github.com/github desktop
+ 
+ GIT: version trackers, invisible, runs on your computer
+ github.com: a website that stores copy of your folder
+ github desktop: buttons that tells git what to do
+ 
+ commit -> "save a labeled snapshots/links to your computer
+ push -> save things to github
+ 
+ rscript -> only code
+ 
+ getwd() -> get your directory 

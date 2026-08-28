@@ -6,20 +6,21 @@ title: "About Me"
 
 <!-- CHANGE THIS -->
 
-Write a few paragraphs about yourself here: where you came from before MUSA,
-what drew you to urban spatial analytics, and what you're hoping to do with it.
+As an urban designer, I'm passionate about exploring the potential of public space and analyzing how it intersects with climate resilience, social equity, and user needs. My journey began with a desire to solve real-world problems with a design mindset, leading me to work in diverse locations such as China, Brazil, and various parts of the United States. I believe in working closely with communities to understand their concerns and implement locally-based solutions that truly make a difference.
+
+When I create a design, it's crucial to make it unique yet replicable. This requires a deep analysis of the special conditions of each site, while always keeping in mind the general ideas of balancing social, economic, and environmental needs. My goal is to craft designs that are both innovative and sustainable, contributing positively to the well-being of communities and the planet.
 
 ## Skills
 
 <!-- CHANGE THIS: update this through the semester as it becomes true -->
 
-- **Languages & Tools:** R, Quarto, Git
-- **Spatial:** (add as you learn)
-- **Data:** US Census / ACS via `tidycensus`
+- **Languages & Tools:** R, Quarto, Git, python
+- **Spatial:**GIS, Rhino
+- **Data:** US Census / ACS via `tidycensus`, environmental data modeling
 
 ## Contact
 
 <!-- CHANGE THIS -->
 
-- Email: your-email@upenn.edu
-- GitHub: [@your-username](https://github.com/your-username)
+- Email: ritawu@upenn.edu
+- GitHub: [ritawu-mcp](https://github.com/ritawu-mcp)
