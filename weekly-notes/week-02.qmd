@@ -28,9 +28,9 @@ What is a website?
  + A computer that is always on -> Github Pages
  
  Quarto 
- Qmd (you write) -> quarto (machine) -> html (web page)
+ Qmd (you wirte) -> quarto (machine) -> html (web page)
                     Render
-what happens in the machine?
+what ahppens in the machine?
 1. read files from top to bottom
 2. finds code chunks
 3. send them to R, get results back
@@ -79,7 +79,7 @@ For the machine:
  "index" 
  - website rule: as for a folder you get that folders index.html
  your github.io -> docs/index.html
- your github.io/weekly_notes -> docs, weekly notes/index.html
+ your github.io/weekly_notes -> docs, weekly nots/index.html
  
  GIT/github.com/github desktop
  
