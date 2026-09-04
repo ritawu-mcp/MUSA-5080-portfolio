@@ -137,55 +137,34 @@
     "href": "weekly-notes/index.html",
     "title": "Weekly Notes",
     "section": "",
-    "text": "Notes from each week of MUSA 5080. New entries appear here automatically — add a .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\n0828\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\n\n\n0828\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "weekly-notes/week-02.html",
-    "href": "weekly-notes/week-02.html",
-    "title": "Week 1: Getting Set Up",
-    "section": "",
-    "text": "Set up the portfolio workflow: made a repository from a template, cloned it with GitHub Desktop, edited files in RStudio, rendered with Quarto, and published to GitHub Pages."
-  },
-  {
-    "objectID": "weekly-notes/week-02.html#what-we-did",
-    "href": "weekly-notes/week-02.html#what-we-did",
-    "title": "Week 1: Getting Set Up",
-    "section": "",
-    "text": "Set up the portfolio workflow: made a repository from a template, cloned it with GitHub Desktop, edited files in RStudio, rendered with Quarto, and published to GitHub Pages."
+    "text": "Notes from each week of MUSA 5080. New entries appear here automatically — add a .qmd file to this folder and render.\n\n\n\n\n\n\n\n\n\n\n\nWeek 2: dplyr and Census\n\n\ntable function and acs data\n\n\n\n\n\nSep 4, 2026\n\n\n\n\n\n\n\n0828\n\n\nFirst impressions, and getting the workflow running.\n\n\n\n\n\nAug 28, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "weekly-notes/week-02.html#key-concepts",
     "href": "weekly-notes/week-02.html#key-concepts",
-    "title": "Week 1: Getting Set Up",
+    "title": "Week 2: dplyr and Census",
     "section": "Key Concepts",
-    "text": "Key Concepts\nThree places a file can live:\n\nMy computer — where I edit\nGitHub.com — where it’s stored\nMy live site — what the world sees\n\nThe loop: Edit → Save → Render → Commit → Push → wait → refresh"
+    "text": "Key Concepts"
   },
   {
     "objectID": "weekly-notes/week-02.html#notes",
     "href": "weekly-notes/week-02.html#notes",
-    "title": "Week 1: Getting Set Up",
-    "section": "0828 Notes",
-    "text": "0828 Notes\nWhat is a website? A folder of html files -&gt; Quarto (code chunck + text) + A computer that is always on -&gt; Github Pages\nQuarto Qmd (you wirte) -&gt; quarto (machine) -&gt; html (web page) Render what ahppens in the machine? 1. read files from top to bottom 2. finds code chunks 3. send them to R, get results back 4. glues texts + results into html\nanatomy of a .qmd #— (no space, 3 dashes) title: ” date: 2026-08-28 #— YAML: a mark up langauge\nMarkdown: .md\n\nwhat i learned today (title)\nToday, I learned about the logic behind how QMD and HTML work for humans and machines, respectively. QMD is easier for humans to read and write because it allows us to combine text, code, and formatting in one document. HTML, on the other hand, is the language that browsers use to understand and display the content.\nI also learned the differences between Git, GitHub, and GitHub Desktop. Git is a version control system that helps track changes in a project. GitHub is an online platform where repositories can be stored and shared, while GitHub Desktop provides a more visual and user-friendly way to work with Git and GitHub.\nAnother important thing I learned today is the importance of maintaining a clean and organized folder structure. As projects become more complicated, it can be difficult to find files or understand which files are being used. Keeping folders organized from the beginning can make it easier to manage a project, avoid confusion, and collaborate with others.\nOverall, today’s lesson helped me better understand how different tools and systems work together behind the scenes to support a digital project.\ncode chuncks\n\nlibrary(tidycensus)\n\nfiles + folders: who is this for? for me (a page/wrote) - index.qmd - about.qmd - weekly_notes.qmd - assignment.qmd\nFor the machine: - quarto.yml (setting for whole website - freeze\nRproj -&gt; Rstudio .gitignore -&gt; git Renviron -&gt; R (secret) doc -&gt; the link to website\n“index” - website rule: as for a folder you get that folders index.html your github.io -&gt; docs/index.html your github.io/weekly_notes -&gt; docs, weekly nots/index.html\nGIT/github.com/github desktop\nGIT: version trackers, invisible, runs on your computer github.com: a website that stores copy of your folder github desktop: buttons that tells git what to do\ncommit -&gt; “save a labeled snapshots/links to your computer push -&gt; save things to github\nrscript -&gt; only code\ngetwd() -&gt; get your directory"
-  },
-  {
-    "objectID": "weekly-notes/week-02.html#proving-r-works",
-    "href": "weekly-notes/week-02.html#proving-r-works",
-    "title": "Week 1: Getting Set Up",
-    "section": "Proving R Works",
-    "text": "Proving R Works\nThe chunk below runs when this page renders. If you can see a result underneath it on your published site, R and Quarto are talking to each other correctly.\n\nsessionInfo()$R.version$version.string\n\n[1] \"R version 4.4.2 (2024-10-31 ucrt)\""
+    "title": "Week 2: dplyr and Census",
+    "section": "0904 Notes",
+    "text": "0904 Notes"
   },
   {
     "objectID": "weekly-notes/week-02.html#reflection",
     "href": "weekly-notes/week-02.html#reflection",
-    "title": "Week 1: Getting Set Up",
+    "title": "Week 2: dplyr and Census",
     "section": "Reflection",
-    "text": "Reflection\n\nWhat I want out of this course: What I want to get out of this course is more coding skills and a better understanding of how coding can be applied to real-world urban data. I hope to become more comfortable using programming tools and learn how to use data to explore, analyze, and visualize urban issues. More importantly, I want to work on meaningful problems rather than just completing technical exercises. I hope this course will help me see how coding and data analysis can be used to better understand cities and potentially contribute to solving real-world planning challenges.\nOne thing I’m nervous about: One thing I am nervous about is the workload of this class. Learning coding can sometimes be time-consuming, especially when something does not work and it takes a long time to figure out why. Since I am still building my technical skills, I am a little worried about keeping up with the assignments and balancing this class with my other coursework. However, I also hope that by practicing consistently throughout the semester, I will become more comfortable with coding and gain confidence over time."
+    "text": "Reflection"
   },
   {
     "objectID": "weekly-notes/week-02.html#questions-i-still-have",
     "href": "weekly-notes/week-02.html#questions-i-still-have",
-    "title": "Week 1: Getting Set Up",
+    "title": "Week 2: dplyr and Census",
     "section": "Questions I Still Have",
-    "text": "Questions I Still Have\n\nnot for now\n## Notes\ntitle: “0828” output: html_document date: “2026-08-28” —"
+    "text": "Questions I Still Have"
   }
 ]
