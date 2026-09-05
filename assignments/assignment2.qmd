@@ -1,0 +1,279 @@
+---
+title: "Assignment 2: Who Do We Know the Least About?"
+subtitle: "Measuring uncertainty in American Community Survey data"
+author: "Rita Wu"
+date: today
+
+params:
+  state: "FL"
+
+format:
+  html:
+    toc: true
+    code-fold: false
+
+execute:
+  warning: false
+  message: false
+---
+
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+```
+
+
+---
+
+## The question
+
+Every number the American Community Survey publishes is an estimate drawn from a
+sample, not a count. That means every number comes with a margin of error — a
+statement about how wrong it might be.
+
+
+**In this analysis, I look at Occupied housing unit numbers across counties in Florida, and
+ask which communities we measure most and least reliably.**
+
+
+```r
+vars <- load_variables(2023, "acs5")
+View(vars)
+```
+
+Then use the search box.
+
+
+```{r}
+my_state <- params$state      # two-letter abbreviation, in quotes
+my_variable <- "B25002_002"     # the variable code, in quotes B25002_002 Occupied Housing Units
+```
+
+## Pulling the data
+
+```{r}
+county_data <- get_acs(
+  geography = "county",
+  variables = my_variable,
+  state = my_state,
+  year = 2023,
+  survey = "acs5"
+)
+```
+
+Let's look at what came back.
+
+```{r}
+dim(county_data)
+head(county_data)
+```
+
+**[How many rows did you get? Does that match the number of counties in your state?]**
+there are 67 rows I got, it matches with the number of counties in Florida.
+---
+
+## How big is the margin of error?
+
+A margin of error of 3,000 means something very different for an estimate of 20,000
+than for an estimate of 200,000. To compare across places, we need it as a
+percentage.
+
+```{r}
+county_data <- county_data %>%
+  mutate(moe_pct = moe / estimate * 100)
+```
+
+
+Now sort to see which counties are measured least reliably.
+
+```{r}
+county_data %>%
+  arrange(desc(moe_pct)) %>%
+  select(NAME, estimate, moe, moe_pct) %>%
+  head(10)
+```
+
+
+
+**[Which county has the largest margin of error relative to its estimate? How large
+is it?]**
+
+the least reliable county is Lafayette County in Florida, with a MOE_pct of 8.82, followed by Liberty County, with a MOE_pct of 6.93.
+
+
+## Sorting counties into reliability categories
+
+```{r}
+county_data <- county_data %>%
+  mutate(reliability = case_when(
+    moe_pct < 2.5  ~ "High confidence",
+    moe_pct < 5 ~ "Moderate",
+    TRUE         ~ "Low confidence"
+  ))
+
+count(county_data, reliability)
+```
+
+
+
+**[How many counties fall into each category?]**
+I use the threshold of 2.5% as high confidence, 5% as moderate, and above that as low confidence.
+Of the whole 67 counties, 43 of them are high confidence, 19 are moderate, and 5 are low confidence.
+---
+
+## Is the margin of error bigger in small places?
+
+To answer this we need population and our variable side by side, in the same row.
+That means a **wide** pull.
+
+```{r}
+county_wide <- get_acs(
+  geography = "county",
+  variables = c(myvar = my_variable,
+                pop   = "B01003_001"),
+  state = my_state,
+  year = 2023,
+  survey = "acs5",
+  output = "wide"
+)
+
+head(county_wide)
+```
+
+
+Notice the column names: `myvarE`, `myvarM`, `popE`, `popM`. The `E` and `M`
+suffixes are estimate and margin of error.
+
+
+```{r}
+county_wide <- county_wide %>%
+  mutate(moe_pct = myvarM / myvarE * 100) %>%
+  mutate(reliability = case_when(
+    moe_pct < 5  ~ "High confidence",
+    moe_pct < 15 ~ "Moderate",
+    TRUE         ~ "Low confidence"
+  ))
+```
+
+Now compare the average population of counties in each reliability category.
+
+```{r}
+county_wide %>%
+  group_by(reliability) %>%
+  summarize(
+    n_counties = n(),
+    avg_population = mean(popE)
+  )
+```
+
+
+**[What is the average population of high-confidence counties versus low-confidence
+counties? Is there a pattern?]**
+
+The average population of high-confidence counties is 352,728. The average population for low-confidence counties is 11,947. As a result, we can see that counties with fewer population will likely to end up in higher margin of error. 
+
+---
+
+## What this means for policy
+
+
+Address all three:
+
+1. **Which communities in your state do we know the least about?** 
+The ACS data suggest that we know the least about smaller communities in Florida, particularly Lafayette County and Liberty County. Lafayette County has the largest relative margin of error in my analysis, with a MOE of 8.82%, followed by Liberty County at 6.93%. In comparison, 43 of Florida’s 67 counties fall into my high-confidence category, while 19 are moderate and only 5 are classified as low confidence.
+
+2. **Why?** 
+This pattern is related to how the ACS is collected. Unlike a complete census, the ACS estimates population and housing characteristics from a sample of households. Smaller counties generally have fewer households and therefore fewer sampled households. With a smaller sample size, estimates are subject to greater sampling uncertainty, which can produce a larger margin of error relative to the estimate. My results illustrate this relationship: high-confidence counties have an average population of 352,728, while low-confidence counties have an average population of only 11,947.
+   
+3. **What could go wrong?** 
+This uncertainty matters for public policy because agencies may treat all county-level estimates as equally precise. If funding were allocated based on occupied housing unit estimates without considering their uncertainty, smaller counties could be disadvantaged. Their estimates are less reliable, so policymakers might underestimate or overestimate their actual housing needs and allocate resources based on numbers that appear more certain than they really are.
+
+---
+
+
+
+1. **Propagate the margin of error.** If you compute a derived value — a percentage,
+   a ratio, a sum — its uncertainty depends on the uncertainty of its inputs, and
+   you can't just carry the original MOE along. The Census Bureau publishes formulas
+   for this, and `tidycensus` implements them: `moe_sum()`, `moe_prop()`,
+   `moe_ratio()`. Compute something derived, and get its margin of error right.
+
+2. **Parameterize the report.** Add `params:` to the YAML so the state is an input
+   rather than hard-coded, and the same file regenerates for any state. Render it
+   from the terminal with `quarto render assignment2.qmd -P state:NY`.
+
+3. **Write a function and iterate.** Wrap the data pull in a function, then use
+   `purrr::map_dfr()` to run it across several states at once. Does the
+   small-places-are-noisier pattern hold everywhere, or are some states different?
+
+4. **Change the geographic scale.** Run the same variable at `geography = "tract"`
+   inside one county. Compare the margins of error to what you saw at county level.
+   What does that imply about the resolution at which you can actually trust ACS
+   data?
+
+If you try one, add a short section describing what you did and what you found.
+
+2. Done in the heading.
+
+3, the small-places-are-noisier pattern holds for FL, NY, TX, OH, PA.
+```{r}
+get_county_data <- function(state_abbr) {
+  
+  get_acs(
+    geography = "county",
+    variables = c(
+      occupied = "B25002_002",
+      population = "B01003_001"
+    ),
+    state = state_abbr,
+    year = 2023,
+    survey = "acs5",
+    output = "wide"
+  ) %>%
+    mutate(
+      state = state_abbr,
+      estimate = occupiedE,
+      moe = occupiedM,
+      population = populationE,
+      moe_pct = moe / estimate * 100,
+      reliability = case_when(
+        moe_pct < 2.5 ~ "High confidence",
+        moe_pct < 5 ~ "Moderate",
+        TRUE ~ "Low confidence"
+      )
+    ) %>%
+    select(
+      GEOID, NAME, state,
+      estimate, moe, population,
+      moe_pct, reliability
+    )
+}
+```
+
+```{r}
+states <- c("FL", "NY", "TX", "OH", "PA")
+
+all_states <- purrr::map_dfr(
+  states,
+  get_county_data
+)
+```
+
+```{r}
+state_result <- all_states %>%
+  group_by(state, reliability) %>%
+  summarize(
+    avg_moe_pct = mean(moe_pct),
+    median_moe_pct = median(moe_pct),
+    max_moe_pct = max(moe_pct),
+    occupied_housing = mean(estimate),
+    pop = mean(population)
+  ) %>%
+  arrange(desc(avg_moe_pct))
+
+state_result
+```
+

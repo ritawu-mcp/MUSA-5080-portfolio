@@ -14,6 +14,101 @@ date: 2026-09-04
 
 ## 0904 Notes
 
+Console: temporary, code disappears
+R script: 
+Code chunk lives inside .qmd
+
+result <- filter(counties, population > 50000)  #keep the big ones!
+result: object: hold the result 
+<- assignment arrow 
+filter: function name (verb)
+county: input data
+population > 500000: arguments 
+
+
+Packages:
+install.package("dplyr") -> do once
+library(dplyr) -> took the book off the shelf, everytime you want to do it
+
+data frame: = tibble (nices, prints, prettier)
+
+Name     income     MOE     moe_pct
+Adams    78975      3334    9
+Berks    74617      1191    10
+Bucks    104200     1502    11
+
+tibble -> verb -> tibble
+
+
+filter()  picks rows
+select()  pick columns 
+mutate()  add a new computed column
+arrange() change the order of the rows asc, desc
+group_by() 
+summary()    -> many rows become few
+
+
+county    state     income           state     income  
+orange    NY        70,000           NY        75,000
+Iguassu    NY       80,000  ----->  BCA         95,000
+Orange    CA        90,000
+Sacramento CA       100,000
+
+
+step1 <- filter(counties, moe_pct > 10)
+step2 <- arrange(step1, desc(moe_pct))
+step3 <- select(step2, name, moe_pct)
+
+
+"and then" 
+%>% 
+
+new_data <- counties %>% 
+  filter (moe_pct>10) %>%
+  arrange(desc(moe_pct)) %>%
+  select(name, moe_pct)
+  
+  
+Decennial census: 10 years, 10 questions,  a sample of the people get (Long form)
+American Community survey (ACS): 2005 born, 3% of households are surveyed 
+- estimate for the population 
+- 1-year ACS: places greater than 65,000 people, most current 
+- 3-year ACS: DEAD
+- 5-year ACS: block group, tract. A 5 year average
+              estimate +- MOE
+              
+B 19103_001E
+B:(base table) 19103:table number 001:line number E: estimate, M=MOE
+load_variables()
+library(tidycensus)
+
+state - county - tract- "neighborhood" (5000-8000 people), boundaries change, nice - block group (horrible MOE, unrealiable estimates) - block (only decennial census)
+  people - longitudinal tracts
+  - NHGIS, LTDB
+  
+GEOID: state (2), county (3), tract (6)  - 11 digits
+        12       101        000100
+      String (in order to keet the 1st "0")
+      
+      
+data <- get_acs(geography: "county",
+                variables: c("B19013_001", "B01003_001"),
+                State: "PA",
+                year: 2023
+                survey: "acs5",
+                output = "wide")
+                
+                
+Tidy (LONG)
+ GEOID   NAME    VARIABLE     Estimate    MOE
+ 42001   Adams   B19013_001   78795       3344
+ 42001   Adams   B01003_001   16002       4389
+ 
+wide
+  GEOID  Name  B19013_001 M
+  
+
+
 ## Reflection
 
 
