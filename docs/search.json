@@ -165,7 +165,7 @@
     "href": "assignments/assignment2.html#sorting-counties-into-reliability-categories",
     "title": "Assignment 2: Who Do We Know the Least About?",
     "section": "Sorting counties into reliability categories",
-    "text": "Sorting counties into reliability categories\n\ncounty_data &lt;- county_data %&gt;%\n  mutate(reliability = case_when(\n    moe_pct &lt; 2.5  ~ \"High confidence\",\n    moe_pct &lt; 5 ~ \"Moderate\",\n    TRUE         ~ \"Low confidence\"\n  ))\n\ncount(county_data, reliability)\n\n# A tibble: 3 × 2\n  reliability         n\n  &lt;chr&gt;           &lt;int&gt;\n1 High confidence    43\n2 Low confidence      5\n3 Moderate           19\n\n\n[How many counties fall into each category?] I use the threshold of 2.5% as high confidence, 5% as moderate, and above that as low confidence. Of the whole 67 counties, 43 of them are high confidence, 19 are moderate, and 5 are low confidence. —"
+    "text": "Sorting counties into reliability categories\n\ncounty_data &lt;- county_data %&gt;%\n  mutate(reliability = case_when(\n    moe_pct &lt; 2.5  ~ \"High confidence\",\n    moe_pct &lt; 5 ~ \"Moderate\",\n    TRUE         ~ \"Low confidence\"\n  ))\n\ncount(county_data, reliability)\n\n# A tibble: 3 × 2\n  reliability         n\n  &lt;chr&gt;           &lt;int&gt;\n1 High confidence    43\n2 Low confidence      5\n3 Moderate           19\n\n\n[How many counties fall into each category?] I use the threshold of 2.5% as high confidence, 5% as moderate, and above that as low confidence. Of the whole 67 counties, 43 of them are high confidence, 19 are moderate, and 5 are low confidence."
   },
   {
     "objectID": "assignments/assignment2.html#is-the-margin-of-error-bigger-in-small-places",

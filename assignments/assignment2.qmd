@@ -122,7 +122,7 @@ count(county_data, reliability)
 **[How many counties fall into each category?]**
 I use the threshold of 2.5% as high confidence, 5% as moderate, and above that as low confidence.
 Of the whole 67 counties, 43 of them are high confidence, 19 are moderate, and 5 are low confidence.
----
+
 
 ## Is the margin of error bigger in small places?
 
