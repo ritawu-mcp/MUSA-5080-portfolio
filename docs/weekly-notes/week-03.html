@@ -6,9 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-08-28">
+<meta name="dcterms.date" content="2026-09-11">
+<meta name="description" content="table function and acs data">
 
-<title>0828 – Rita Wu - MUSA 5080 Portfolio</title>
+<title>Week 3:ggplot &amp; margin of error – Rita Wu - MUSA 5080 Portfolio</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -169,10 +170,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#notes" id="toc-notes" class="nav-link active" data-scroll-target="#notes">0828 Notes</a>
-  <ul class="collapse">
-  <li><a href="#what-i-learned-today-title" id="toc-what-i-learned-today-title" class="nav-link" data-scroll-target="#what-i-learned-today-title">what i learned today (title)</a></li>
-  </ul></li>
+  <li><a href="#what-we-did" id="toc-what-we-did" class="nav-link active" data-scroll-target="#what-we-did">What We Did</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts">Key Concepts</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">0904 Notes</a></li>
+  <li><a href="#reflection" id="toc-reflection" class="nav-link" data-scroll-target="#reflection">Reflection</a></li>
+  <li><a href="#questions-i-still-have" id="toc-questions-i-still-have" class="nav-link" data-scroll-target="#questions-i-still-have">Questions I Still Have</a></li>
   </ul>
 </nav>
     </div>
@@ -181,9 +183,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">0828</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Week 3:ggplot &amp; margin of error</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
 </div>
 
+<div>
+  <div class="description">
+    table function and acs data
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
@@ -192,7 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 28, 2026</p>
+      <p class="date">September 11, 2026</p>
     </div>
   </div>
   
@@ -204,33 +211,68 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<section id="what-we-did" class="level2">
+<h2 class="anchored" data-anchor-id="what-we-did">What We Did</h2>
+</section>
+<section id="key-concepts" class="level2">
+<h2 class="anchored" data-anchor-id="key-concepts">Key Concepts</h2>
+</section>
 <section id="notes" class="level2">
-<h2 class="anchored" data-anchor-id="notes">0828 Notes</h2>
-<p>What is a website? A folder of html files -&gt; Quarto (code chunck + text) + A computer that is always on -&gt; Github Pages</p>
-<p>Quarto Qmd (you wirte) -&gt; quarto (machine) -&gt; html (web page) Render what ahppens in the machine? 1. read files from top to bottom 2. finds code chunks 3. send them to R, get results back 4. glues texts + results into html</p>
-<p>anatomy of a .qmd — (no space, 3 dashes) title: ” date: 2026-08-28 — YAML: a mark up langauge</p>
-<p>Markdown: .md</p>
-<section id="what-i-learned-today-title" class="level3">
-<h3 class="anchored" data-anchor-id="what-i-learned-today-title">what i learned today (title)</h3>
-<p>your writing</p>
-<p>code chuncks</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidycensus)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div>
-<p>files + folders: who is this for? for me (a page/wrote) - index.qmd - about.qmd - weekly_notes.qmd - assignment.qmd</p>
-<p>For the machine: - quarto.yml (setting for whole website - freeze</p>
-<p>Rproj -&gt; Rstudio .gitignore -&gt; git Renviron -&gt; R (secret) doc -&gt; the link to website</p>
-<p>“index” - website rule: as for a folder you get that folders index.html your github.io -&gt; docs/index.html your github.io/weekly_notes -&gt; docs, weekly nots/index.html</p>
-<p>GIT/github.com/github desktop</p>
-<p>GIT: version trackers, invisible, runs on your computer github.com: a website that stores copy of your folder github desktop: buttons that tells git what to do</p>
-<p>commit -&gt; “save a labeled snapshots/links to your computer push -&gt; save things to github</p>
-<p>rscript -&gt; only code</p>
-<p>getwd() -&gt; get your directory</p>
+<h2 class="anchored" data-anchor-id="notes">0904 Notes</h2>
+<p>Ansombe’s quartet - same mean X.Y correlation, regression line plot is a mapping from columns in your data to visual properties on your page. (“Grammar of Graphics”) - “gg”</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Your Data</th>
+<th>Page (Canvas)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>estimate ——&gt;</td>
+<td>Position on the y-axis</td>
+</tr>
+<tr class="even">
+<td>Population ——&gt;</td>
+<td>Position on x-axis</td>
+</tr>
+<tr class="odd">
+<td>reliability ——&gt;</td>
+<td>color</td>
+</tr>
+<tr class="even">
+<td>MOE ——&gt;</td>
+<td>size</td>
+</tr>
+</tbody>
+</table>
+<p>1。 P &lt;- ggplot (data) -&gt; create the blank canvas (data i am using) 2. aes( ) aesthetic mappings, no decorating 3. geom_() the shape / type of chart</p>
+<p>ggplot(tract_data) + aes(x = population, y = MOE_pct) + geom_point()</p>
+<pre><code>   inside aes()                 |            Not inside</code></pre>
+<p>aes(color = reliability) aes(color = “blue”) IT WILL NOT WORK | geom_point(color = “blue”) THIS IS RIGHT</p>
+<p>geometery options: - how a variable is speard out geom_histogram() only x variable - how do two varibles relate? geom_point() - how to groups compare geom_boxplot() geom_ - how do things change over time geom_line() - how uncertainty is a value geom_errorbar()</p>
+<p>small multiple plots: - facet_wraps(~reliability)</p>
+<p>Error Bar</p>
+<p>county_data %&gt;% ggplot(aes(x = NAME, y = estimate)) + geom_col() + geom_errorbar(aes(ymin = estimate - moe, ymax = estimate + moe))</p>
+<p>coefficient of variation (CV) - relative measure of sampling error standard error / estimate * 100</p>
+<p>low CV: 15% -&gt; high reliability medium: 15-30%<br>
+high: 30 high sampling error</p>
+<p>Derived Uncertainty poverty rate: # in poverty (+ - moe)/ total pop (+ - moe)</p>
+<p>function: - moe.sum() -&gt; adding estimates together - moe.prop() -&gt; one estimate as share of another - moe.raho() -&gt; pop# / HHincome one not a subset of another</p>
+<p>change over time: 1. the overlapping intervals 2019-2023, 2018 - 2022 compare Non-overlapping intervals 2014-2018 v. 2019-2023</p>
+<p>example: - 2014-2018: 45,000 +- 8,000 -&gt; is that true if anybody growth by 17,000? - 2019-2023: 62,000 +- 11,000</p>
+<p>The Math. The Standard Error of Difference SEdiff = sqrt (SE1^2 + SE2^2) z = (est1 - est2)/SEdiff</p>
+<p>sqrt((8000/1.645)^2 + (11000/1.645)^2) = 8,268 confidence interval of change difference +- (1.645 * SEdiff) interval = $17,000 +- (1.645 * 8.268) = 17,000 +- 13,691 [3,399 -&gt; 30,601]</p>
+</section>
+<section id="reflection" class="level2">
+<h2 class="anchored" data-anchor-id="reflection">Reflection</h2>
+</section>
+<section id="questions-i-still-have" class="level2">
+<h2 class="anchored" data-anchor-id="questions-i-still-have">Questions I Still Have</h2>
 
 
 <!-- -->
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -686,81 +728,106 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "0828"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">output:</span><span class="co"> html_document</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "2026-08-28"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Week 3:ggplot &amp; margin of error"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> "table function and acs data"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2026-09-11</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup, include=FALSE}</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">echo =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## What We Did</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0828 Notes</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>What is a website?</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a> A folder of html files -&gt; Quarto (code chunck + text)</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ss"> + </span>A computer that is always on -&gt; Github Pages</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a> Quarto </span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a> Qmd (you wirte) -&gt; quarto (machine) -&gt; html (web page)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                    Render</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>what ahppens in the machine?</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>read files from top to bottom</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>finds code chunks</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>send them to R, get results back</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>glues texts + results into html</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>anatomy of a .qmd</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>--- (no space, 3 dashes)</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>title: "</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>date: 2026-08-28</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>YAML: a mark up langauge  </span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>Markdown: .md</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu">### what i learned today (title)</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>your writing</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>code chuncks </span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidycensus)</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>files + folders:</span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>who is this for? </span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a> for me (a page/wrote)</span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>index.qmd</span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>about.qmd</span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>weekly_notes.qmd</span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>assignment.qmd</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>For the machine:</span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>quarto.yml (setting for whole website</span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>freeze</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a> Rproj -&gt; Rstudio</span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a> .gitignore -&gt; git</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a> Renviron -&gt; R (secret)</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a> doc -&gt; the link to website</span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a> "index" </span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="ss"> - </span>website rule: as for a folder you get that folders index.html</span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a> your github.io -&gt; docs/index.html </span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a> your github.io/weekly_notes -&gt; docs, weekly nots/index.html</span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a> GIT/github.com/github desktop</span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a> GIT: version trackers, invisible, runs on your computer</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a> github.com: a website that stores copy of your folder</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a> github desktop: buttons that tells git what to do</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a> commit -&gt; "save a labeled snapshots/links to your computer</span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a> push -&gt; save things to github</span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a> rscript -&gt; only code</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a> getwd() -&gt; get your directory </span>
-</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Concepts</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0904 Notes</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>Ansombe's quartet</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>same mean X.Y correlation, regression line</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>plot is a mapping from columns in your data to visual properties on your page. ("Grammar of Graphics") - "gg"</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>Your Data                   Page (Canvas)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>---------                   ------------</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>estimate       ------&gt;      Position on the y-axis</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>Population     ------&gt;      Position on x-axis</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>reliability    ------&gt;      color</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>MOE            ------&gt;      size</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>1。   P &lt;- ggplot (data)  -&gt; create the blank canvas (data i am using)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="ss">2.    </span>aes( )                 aesthetic mappings, no decorating </span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="ss">3.    </span>geom_()                the shape / type of chart </span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>ggplot(tract_data) +</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  aes(x = population, y = MOE_pct) +</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    geom_point()</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="in">    </span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="in">       inside aes()                 |            Not inside</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>   aes(color = reliability)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>   aes(color = "blue") IT WILL NOT WORK    |     geom_point(color = "blue")  THIS IS RIGHT</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>geometery options:</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how a variable is speard out         geom_histogram()    only x variable</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how do two varibles relate?          geom_point()</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how to groups compare                geom_boxplot()  geom_</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how do things change over time       geom_line()</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how uncertainty is a value           geom_errorbar()</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>small multiple plots:</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>facet_wraps(~reliability)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>Error Bar</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>county_data %&gt;%</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  ggplot(aes(x = NAME, y = estimate)) +</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  geom_col() +</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  geom_errorbar(aes(ymin = estimate - moe, ymax = estimate + moe))</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>coefficient of variation (CV)</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>relative measure of sampling error</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>  standard error / estimate * 100</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>low CV: 15%  -&gt; high reliability</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>medium: 15-30%  </span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>high: 30 high sampling error</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>Derived Uncertainty </span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>  poverty rate: # in poverty (+ - moe)/ total pop (+ - moe)</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>function:</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>moe.sum()  -&gt; adding estimates together</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>moe.prop()  -&gt; one estimate as share of another</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>moe.raho()  -&gt;  pop# / HHincome  one not a subset of another </span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>change over time: </span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="ss">  1. </span>the overlapping intervals </span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>     2019-2023, 2018 - 2022</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>     compare Non-overlapping intervals 2014-2018 v. 2019-2023</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>     </span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>  example:</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>2014-2018: 45,000 +- 8,000               -&gt; is that true if anybody growth by 17,000?</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>2019-2023: 62,000 +- 11,000</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>  The Math. The Standard Error of Difference</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>  SEdiff = sqrt (SE1^2 + SE2^2)</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>  z = (est1 - est2)/SEdiff</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>  sqrt((8000/1.645)^2 + (11000/1.645)^2) = 8,268</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>  confidence interval of change</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>    difference +- (1.645 * SEdiff)</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>    interval = $17,000 +- (1.645 * 8.268)  = 17,000 +- 13,691</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>    <span class="co">[</span><span class="ot">3,399 -&gt; 30,601</span><span class="co">]</span></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reflection</span></span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## Questions I Still Have</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

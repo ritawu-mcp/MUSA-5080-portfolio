@@ -58,7 +58,7 @@ For the machine:
  
  "index" 
  - website rule: as for a folder you get that folders index.html
- your github.io -> docs/index.html
+ your github.io -> docs/index.html 
  your github.io/weekly_notes -> docs, weekly nots/index.html
  
  GIT/github.com/github desktop

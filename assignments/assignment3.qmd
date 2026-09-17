@@ -1,0 +1,186 @@
+---
+title: "Assignment 3: Poverty rate in Philly, how did it change over years (2006-2010 v. 2013-2017)?"
+subtitle: "how margin of error effect our judgement?"
+author: "Rita Wu"
+date: today
+---
+
+
+## Setup
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(sf)
+```
+
+```{r}
+get_poverty <- function(yr) {
+  get_acs(
+    geography = "tract",
+    variables = c(
+      below_poverty = "B07012_002",
+      M_HH_income   = "B19013_001"
+    ),
+    state    = "PA",
+    county   = "Philadelphia",
+    year     = yr,
+    survey   = "acs5",
+    geometry = TRUE
+  ) %>%
+    mutate(
+      period = paste0(yr - 4, "-", yr)
+    )
+}
+
+```
+
+```{r}
+poverty_change <- bind_rows(
+  get_poverty(2010),
+  get_poverty(2017)
+)
+```
+```{r}
+poverty_wide <- poverty_change %>%
+  st_drop_geometry() %>%
+  select(GEOID, NAME, variable, period, estimate, moe) %>%
+  pivot_wider(
+    names_from = c(variable, period),
+    values_from = c(estimate, moe)
+  )
+
+tract_geometry <- poverty_change %>%
+  select(GEOID, geometry) %>%
+  distinct(GEOID, .keep_all = TRUE)
+```
+
+```{r}
+test_change <- function(data, variable, period_1, period_2) {
+  
+  estimate_1 <- paste0("estimate_", variable, "_", period_1)
+  estimate_2 <- paste0("estimate_", variable, "_", period_2)
+  
+  moe_1 <- paste0("moe_", variable, "_", period_1)
+  moe_2 <- paste0("moe_", variable, "_", period_2)
+  
+  data %>%
+    mutate(
+      change = .data[[estimate_1]] - .data[[estimate_2]],
+      se_1 = .data[[moe_1]] / 1.645,
+      se_2 = .data[[moe_2]] / 1.645,
+      se_diff = sqrt(se_1^2 + se_2^2),
+      moe_diff = se_diff * 1.645,
+      z = change / se_diff,
+      significant = abs(z) > 1.645
+    )
+}
+```
+
+```{r}
+poverty_tested <- test_change(
+  poverty_wide,
+  variable = "below_poverty",
+  period_1 = "2013-2017",
+  period_2 = "2006-2010"
+)
+
+income_tested <- test_change(
+  poverty_wide,
+  variable = "M_HH_income",
+  period_1 = "2013-2017",
+  period_2 = "2006-2010"
+)
+```
+
+```{r}
+poverty_tested %>%
+  count(significant)
+
+income_tested %>%
+  count(significant)
+```
+```{r}
+poverty_tested %>%
+  filter(significant) %>%
+  mutate(NAME = str_remove(NAME, " County, New York")) %>%
+  ggplot(aes(x = reorder(NAME, change), y = change)) +
+  geom_col(aes(fill = change > 0)) +
+  geom_errorbar(aes(ymin = change - moe_diff,
+                    ymax = change + moe_diff), width = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Statistically significant change in poverty count",
+       subtitle = "2014–2018 vs 2019–2023, ACS 5-year estimates",
+       x = NULL, y = "Change in people below poverty level")
+```
+```{r}
+library(gt)
+
+reliability_table <- poverty_tested %>%
+  mutate(
+    cv = (moe_diff / 1.645) / abs(change) * 100,
+    dot = case_when(
+      cv < 12  ~ "🟢",
+      cv <= 40 ~ "🟡",
+      TRUE     ~ "🔴"
+    ),
+    flag = case_when(
+      cv < 12  ~ "Reliable",
+      cv <= 40 ~ "Somewhat reliable",
+      TRUE     ~ "Unreliable"
+    ),
+    NAME = str_remove(NAME, " County, New York")
+  ) %>%
+  arrange(desc(cv)) %>%
+  select(dot, NAME, change, moe_diff, cv, flag, GEOID)
+
+reliability_table %>%
+  gt() %>%
+  fmt_number(columns = c(change, moe_diff), decimals = 0) %>%
+  fmt_number(columns = cv, decimals = 1) %>%
+  cols_label(
+    dot      = "",
+    NAME     = "NAME",
+    change = "change",
+    moe_diff      = "moe_diff",
+    cv       = "CV (%)",
+    flag     = "Reliability"
+  ) %>%
+  cols_align(align = "center", columns = dot) %>%
+  tab_header(
+    title    = "Population change of below 100% of the poverty level from ACS 2010 to ACS 2017",
+    subtitle = "City of Phialdelphia by Census Tract"
+  ) %>%
+  tab_source_note(
+    "Reliability thresholds follow Jurjevich et al. (2018): CV < 12% reliable, 12–40% somewhat reliable, > 40% unreliable."
+  )
+
+```
+```{r}
+poverty_result <- tract_geometry %>%
+  left_join(reliability_table, by = "GEOID") %>%
+  sf::st_as_sf()
+```
+
+```{r}
+
+ggplot(poverty_result) +
+  geom_sf(aes(fill = flag), color = "white", linewidth = 0.1) +
+  scale_fill_manual(
+    values = c(
+      "Reliable" = "#2ca25f",
+      "Somewhat reliable" = "#fec44f",
+      "Unreliable" = "#de2d26"
+    )
+  ) +
+  labs(
+    title = "Reliability of Poverty-Level Population Change",
+    subtitle = "ACS 2006–2010 to 2013–2017, Philadelphia Census Tracts",
+    fill = "Reliability"
+  ) +
+  theme_void()
+```
+
+

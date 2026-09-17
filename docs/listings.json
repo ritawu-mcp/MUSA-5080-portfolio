@@ -1,15 +1,17 @@
 [
   {
-    "listing": "/assignments/index.html",
+    "listing": "/weekly-notes/index.html",
     "items": [
-      "/assignments/assignment2.html"
+      "/weekly-notes/week-03.html",
+      "/weekly-notes/week-02.html",
+      "/weekly-notes/week-01.html"
     ]
   },
   {
-    "listing": "/weekly-notes/index.html",
+    "listing": "/assignments/index.html",
     "items": [
-      "/weekly-notes/week-02.html",
-      "/weekly-notes/week-01.html"
+      "/assignments/assignment2.html",
+      "/assignments/assignment3.html"
     ]
   }
 ]

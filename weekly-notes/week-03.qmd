@@ -1,0 +1,102 @@
+---
+title: "Week 3:ggplot & margin of error"
+description: "table function and acs data"
+date: 2026-09-11
+---
+
+## What We Did
+
+
+
+## Key Concepts
+
+
+
+## 0904 Notes
+
+Ansombe's quartet
+- same mean X.Y correlation, regression line
+plot is a mapping from columns in your data to visual properties on your page. ("Grammar of Graphics") - "gg"
+
+Your Data                   Page (Canvas)
+---------                   ------------
+estimate       ------>      Position on the y-axis
+Population     ------>      Position on x-axis
+reliability    ------>      color
+MOE            ------>      size
+
+
+1。   P <- ggplot (data)  -> create the blank canvas (data i am using)
+2.    aes( )                 aesthetic mappings, no decorating 
+3.    geom_()                the shape / type of chart 
+
+ggplot(tract_data) +
+  aes(x = population, y = MOE_pct) +
+    geom_point()
+    
+    
+       inside aes()                 |            Not inside
+   aes(color = reliability)
+   aes(color = "blue") IT WILL NOT WORK    |     geom_point(color = "blue")  THIS IS RIGHT
+
+
+geometery options:
+- how a variable is speard out         geom_histogram()    only x variable
+- how do two varibles relate?          geom_point()
+- how to groups compare                geom_boxplot()  geom_
+- how do things change over time       geom_line()
+- how uncertainty is a value           geom_errorbar()
+
+small multiple plots:
+- facet_wraps(~reliability)
+
+Error Bar
+
+county_data %>%
+  ggplot(aes(x = NAME, y = estimate)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = estimate - moe, ymax = estimate + moe))
+
+
+coefficient of variation (CV)
+- relative measure of sampling error
+  standard error / estimate * 100
+  
+low CV: 15%  -> high reliability
+medium: 15-30%  
+high: 30 high sampling error
+
+Derived Uncertainty 
+  poverty rate: # in poverty (+ - moe)/ total pop (+ - moe)
+
+function:
+- moe.sum()  -> adding estimates together
+- moe.prop()  -> one estimate as share of another
+- moe.raho()  ->  pop# / HHincome  one not a subset of another 
+
+
+change over time: 
+  1. the overlapping intervals 
+     2019-2023, 2018 - 2022
+     compare Non-overlapping intervals 2014-2018 v. 2019-2023
+     
+  example:
+  - 2014-2018: 45,000 +- 8,000               -> is that true if anybody growth by 17,000?
+  - 2019-2023: 62,000 +- 11,000
+  
+  The Math. The Standard Error of Difference
+  SEdiff = sqrt (SE1^2 + SE2^2)
+  z = (est1 - est2)/SEdiff
+  
+  sqrt((8000/1.645)^2 + (11000/1.645)^2) = 8,268
+  confidence interval of change
+    difference +- (1.645 * SEdiff)
+    interval = $17,000 +- (1.645 * 8.268)  = 17,000 +- 13,691
+    [3,399 -> 30,601]
+  
+## Reflection
+
+
+
+## Questions I Still Have
+
