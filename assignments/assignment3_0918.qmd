@@ -1,0 +1,552 @@
+---
+title: "Verify the Claim: Did poverty really rise across Philadelphia, 2006–2010 vs. 2013–2017?"
+subtitle: "How margin of error affects our judgement"
+author: "Rita Wu"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Show code"
+    embed-resources: true
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(gt)
+```
+
+## Part 1 — Reconstruct
+### Article analyzed
+
+The article I am looking at is Alfred Lubrano's “New Census figures on Philly neighborhoods show inequality, high numbers of whites living in poverty,” published by WHYY / Philadelphia Inquirer on December 6, 2018.
+
+The article compares poverty in Philadelphia between 2006–2010 and 2013–2017. It gives several examples of neighborhoods where poverty apparently increased a lot, such as Eastwick, where the poverty rate went from 12% to 26%, and Holmesburg, where it went from 2% to 19%. In this assignment, I use census tracts to recreate the comparison and check whether the changes are large enough to be statistically meaningful.
+
+### Variables
+
+I used two ACS variables for each Philadelphia census tract:
+
+B07012_002: population below 100% of the poverty level
+B07012_001: total population for whom poverty status is determined
+
+I calculated the poverty rate by dividing the proverty population by the total population of the tracts. I used these two variables because I need both the number of people in poverty and the total population to calculate the rate and its margin of error.
+
+### Years and survey
+
+I used the ACS 5-year estimates for 2006–2010 and 2013–2017 because these are the same periods used in the article. I used the 5-year ACS rather than the 1-year ACS because the 1-year ACS is not available at the census-tract level. The 5-year estimates also give us tract-level data with margins of error.
+
+### Do the two periods overlap?
+
+The two periods do not overlap. The first period covers 2006–2010 and the second covers 2013–2017, so they do not share any survey years. I therefore treat the two estimates as independent when calculating the margin of error for the change.
+
+If the two periods overlapped, the estimates would not be fully independent, so simply combining their margins of error would not be appropriate.
+
+### Assumptions
+
+There are a few things I had to assume because the article does not explain them in detail.
+
+- I assume that “poverty rate” means the percentage of people below 100% of the federal poverty level.
+- The neighborhoods in the article, such as Eastwick and Holmesburg, are not Census geographies. Since the article does not explain exactly which census tracts were used, I use individual census tracts instead. Because of this, my numbers will not necessarily match the article exactly.
+- I assume the census tract boundaries are comparable between the two ACS periods, so I can match the same GEOID across the two periods.
+- The article does not state a confidence level for its comparisons. I use 90% confidence, which corresponds to a z-value of 1.645 and is the confidence level used for ACS published margins of error.
+
+```{r}
+#| message: false
+#| warning: false
+#| output: false
+get_poverty <- function(yr) {
+
+  get_acs(
+    geography = "tract",
+    variables = c(
+      below_poverty = "B07012_002",
+      total         = "B07012_001"
+    ),
+    state    = "PA",
+    county   = "Philadelphia",
+    year     = yr,
+    survey   = "acs5",
+    geometry = TRUE
+  ) %>%
+    mutate(
+      period = paste0(yr - 4, "-", yr)
+    )
+}
+
+poverty_change <- bind_rows(
+  get_poverty(2010),
+  get_poverty(2017)
+)
+
+
+tract_geometry <- poverty_change %>%
+  select(GEOID, geometry) %>%
+  distinct(GEOID, .keep_all = TRUE)
+
+
+poverty_wide <- poverty_change %>%
+  sf::st_drop_geometry() %>%
+  select(GEOID, NAME, variable, period, estimate, moe) %>%
+  pivot_wider(
+    names_from  = c(variable, period),
+    values_from = c(estimate, moe)
+  )
+```
+
+## Part 2 — Test
+
+### Step 1: Poverty rate and its margin of error
+
+First, I calculated the poverty rate for each tract. Since the poverty rate is a proportion, I cannot just use the margin of error for the poverty count. I used moe_prop() to calculate the margin of error for the rate using the numerator, denominator, and their MOEs.
+
+```{r}
+poverty_rate <- poverty_wide %>%
+  mutate(
+
+    
+    poverty_rate_2006_2010 =
+      `estimate_below_poverty_2006-2010` /
+      `estimate_total_2006-2010` * 100,
+
+    poverty_rate_2013_2017 =
+      `estimate_below_poverty_2013-2017` /
+      `estimate_total_2013-2017` * 100,
+
+    
+    poverty_rate_moe_2006_2010 =
+      moe_prop(
+        `estimate_below_poverty_2006-2010`,
+        `estimate_total_2006-2010`,
+        `moe_below_poverty_2006-2010`,
+        `moe_total_2006-2010`
+      ) * 100,
+
+    poverty_rate_moe_2013_2017 =
+      moe_prop(
+        `estimate_below_poverty_2013-2017`,
+        `estimate_total_2013-2017`,
+        `moe_below_poverty_2013-2017`,
+        `moe_total_2013-2017`
+      ) * 100
+  )
+```
+
+### Step 2: Coefficient of variation and reliability
+
+I also calculated the coefficient of variation (CV) for each poverty rate. I used the thresholds from Jurjevich et al. (2018): a CV below 12% is considered reliable, 12–40% is somewhat reliable, and above 40% is unreliable.
+
+If the poverty rate cannot be calculated and the CV is NA, I leave the reliability result as NA instead of automatically calling it unreliable.
+
+```{r}
+poverty_reliability <- poverty_rate %>%
+  mutate(
+
+    cv_2006_2010 =
+      (poverty_rate_moe_2006_2010 / 1.645) /
+      poverty_rate_2006_2010 * 100,
+
+    cv_2013_2017 =
+      (poverty_rate_moe_2013_2017 / 1.645) /
+      poverty_rate_2013_2017 * 100,
+
+    reliability_2006_2010 = case_when(
+      is.na(cv_2006_2010)  ~ NA_character_,
+      cv_2006_2010 < 12    ~ "Reliable",
+      cv_2006_2010 <= 40   ~ "Somewhat reliable",
+      TRUE                 ~ "Unreliable"
+    ),
+
+    reliability_2013_2017 = case_when(
+      is.na(cv_2013_2017)  ~ NA_character_,
+      cv_2013_2017 < 12    ~ "Reliable",
+      cv_2013_2017 <= 40   ~ "Somewhat reliable",
+      TRUE                 ~ "Unreliable"
+    )
+  )
+```
+
+### Step 3: Change between periods, its margin of error, and the 90% test
+
+I calculated the change in poverty rate by subtracting the 2006–2010 rate from the 2013–2017 rate. I then calculated the standard error and margin of error for this difference.
+
+I used a 90% confidence level to test whether the change is statistically different from zero. In other words, if the absolute value of the z-score is greater than 1.645, I classify the change as significant.
+
+```{r}
+poverty_tested <- poverty_reliability %>%
+  mutate(
+
+    change_rate =
+      poverty_rate_2013_2017 -
+      poverty_rate_2006_2010,
+
+    se_2006_2010 = poverty_rate_moe_2006_2010 / 1.645,
+    se_2013_2017 = poverty_rate_moe_2013_2017 / 1.645,
+
+    se_diff  = sqrt(se_2006_2010^2 + se_2013_2017^2),
+    moe_diff = se_diff * 1.645,
+
+    z = change_rate / se_diff,
+
+    significant = abs(z) > 1.645,
+
+    direction = case_when(
+      is.na(significant)            ~ NA_character_,
+      significant & change_rate > 0 ~ "Significant increase",
+      significant & change_rate < 0 ~ "Significant decrease",
+      TRUE                          ~ "Not significant"
+    )
+  )
+```
+
+```{r}
+
+n_tract    <- nrow(poverty_tested)
+n_na       <- sum(is.na(poverty_tested$significant))
+n_tested   <- n_tract - n_na
+n_sig      <- sum(poverty_tested$significant, na.rm = TRUE)
+n_up       <- sum(poverty_tested$direction == "Significant increase", na.rm = TRUE)
+n_down     <- sum(poverty_tested$direction == "Significant decrease", na.rm = TRUE)
+n_notsig   <- n_tested - n_sig
+pct_sig    <- round(100 * n_sig / n_tested)
+pct_up     <- round(100 * n_up / n_tested)
+pct_notsig <- 100 - pct_sig
+
+
+valid_10 <- sum(!is.na(poverty_tested$reliability_2006_2010))
+valid_17 <- sum(!is.na(poverty_tested$reliability_2013_2017))
+pct_rel_10 <- round(100 * sum(poverty_tested$reliability_2006_2010 == "Reliable", na.rm = TRUE) / valid_10)
+pct_rel_17 <- round(100 * sum(poverty_tested$reliability_2013_2017 == "Reliable", na.rm = TRUE) / valid_17)
+pct_unrel_10 <- round(100 * sum(poverty_tested$reliability_2006_2010 == "Unreliable", na.rm = TRUE) / valid_10)
+pct_unrel_17 <- round(100 * sum(poverty_tested$reliability_2013_2017 == "Unreliable", na.rm = TRUE) / valid_17)
+```
+
+**How many tracts show a detectable change?** Of `r n_tract` Philadelphia tracts, `r n_tested` can be tested. Only **`r n_sig` (`r pct_sig`%)** show a change that is statistically distinguishable from zero at 90% confidence (`r n_up` increases and `r n_down` decreases). The other **`r n_notsig` (`r pct_notsig`%)** are not distinguishable from zero: the estimated change could be sampling noise. 
+
+One thing to keep in mind is that I am using a 90% confidence level. Even if there were no actual changes, some tracts could still appear significant just because of sampling variation.
+
+```{r}
+poverty_tested %>%
+  count(direction) %>%
+  mutate(direction = replace_na(direction, "No data (NA)")) %>%
+  gt() %>%
+  cols_label(direction = "Result of 90% test", n = "Number of tracts") %>%
+  tab_header(
+    title = "How Many Tracts Show a Detectable Change in Poverty?",
+    subtitle = "Philadelphia census tracts, ACS 2006–2010 vs. 2013–2017"
+  ) %>%
+  tab_source_note("Test: |z| > 1.645 (90% confidence). MOE of the change = sqrt(MOE1^2 + MOE2^2).")
+```
+
+### Step 4: Missing values
+
+Some tracts produce `NA`. Before deciding what to do, I checked why. The table lists every tract without a testable change and the reason.
+
+```{r}
+na_tracts <- poverty_tested %>%
+  filter(is.na(z)) %>%
+  mutate(
+    reason = case_when(
+      is.na(`estimate_total_2006-2010`) | `estimate_total_2006-2010` == 0 ~ "No population in 2006–2010",
+      is.na(`estimate_total_2013-2017`) | `estimate_total_2013-2017` == 0 ~ "No population in 2013–2017",
+      TRUE ~ "Other (needs a closer look)"
+    ),
+    NAME = str_remove(NAME, ", Philadelphia County, Pennsylvania")
+  ) %>%
+  select(
+    GEOID, NAME,
+    pop_2006_2010 = `estimate_total_2006-2010`,
+    pop_2013_2017 = `estimate_total_2013-2017`,
+    reason
+  )
+
+na_tracts %>%
+  gt() %>%
+  cols_label(
+    GEOID = "GEOID", NAME = "Census Tract",
+    pop_2006_2010 = "Population\n2006–2010",
+    pop_2013_2017 = "Population\n2013–2017",
+    reason = "Why NA"
+  ) %>%
+  tab_header(
+    title = "Tracts Excluded from the Significance Test",
+    subtitle = "Philadelphia census tracts with no computable poverty rate"
+  )
+```
+
+
+**What I decided.** `r n_na` tracts do not have a computable change in poverty rate. In these cases, the population used to calculate the rate is zero or missing, so the calculation can become 0/0. That is undefined; it does not mean that the poverty rate is 0%.
+
+These are mostly places with very few or no residents, such as industrial areas, parks, or the airport. I did not change these values to zero because that would give them a meaning that the data do not support.
+
+Instead, I left them out of the statistical test and showed them as “No data” on the maps.
+
+### Step 5: Reliability table
+
+```{r}
+reliability_table <- poverty_tested %>%
+  filter(!is.na(cv_2013_2017)) %>%
+  arrange(desc(cv_2013_2017)) %>%
+  slice_head(n = 20) %>%
+  mutate(
+    NAME = str_remove(NAME, ", Philadelphia County, Pennsylvania"),
+
+    dot_10 = case_when(
+      reliability_2006_2010 == "Reliable"          ~ "🟢",
+      reliability_2006_2010 == "Somewhat reliable" ~ "🟡",
+      reliability_2006_2010 == "Unreliable"        ~ "🔴",
+      TRUE                                         ~ "—"
+    ),
+    dot_17 = case_when(
+      reliability_2013_2017 == "Reliable"          ~ "🟢",
+      reliability_2013_2017 == "Somewhat reliable" ~ "🟡",
+      reliability_2013_2017 == "Unreliable"        ~ "🔴",
+      TRUE                                         ~ "—"
+    )
+  ) %>%
+  select(
+    NAME,
+    poverty_rate_2006_2010, poverty_rate_moe_2006_2010, cv_2006_2010, dot_10,
+    poverty_rate_2013_2017, poverty_rate_moe_2013_2017, cv_2013_2017, dot_17
+  )
+
+reliability_table %>%
+  gt() %>%
+  fmt_number(columns = -c(NAME, dot_10, dot_17), decimals = 1) %>%
+  tab_spanner(
+    label = "ACS 2006–2010",
+    columns = c(poverty_rate_2006_2010, poverty_rate_moe_2006_2010, cv_2006_2010, dot_10)
+  ) %>%
+  tab_spanner(
+    label = "ACS 2013–2017",
+    columns = c(poverty_rate_2013_2017, poverty_rate_moe_2013_2017, cv_2013_2017, dot_17)
+  ) %>%
+  cols_label(
+    NAME = "Census Tract",
+    poverty_rate_2006_2010 = "Rate (%)",
+    poverty_rate_moe_2006_2010 = "MOE (±pp)",
+    cv_2006_2010 = "CV (%)",
+    dot_10 = "",
+    poverty_rate_2013_2017 = "Rate (%)",
+    poverty_rate_moe_2013_2017 = "MOE (±pp)",
+    cv_2013_2017 = "CV (%)",
+    dot_17 = ""
+  ) %>%
+  cols_align(align = "center", columns = c(dot_10, dot_17)) %>%
+  tab_header(
+    title = "Reliability of Tract-Level Poverty Rates",
+    subtitle = paste0("The 20 least reliable tracts in 2013–2017 (of ", n_tract, " Philadelphia tracts)")
+  ) %>%
+  tab_source_note(
+    "🟢 CV < 12% reliable; 🟡 CV 12–40% somewhat reliable; 🔴 CV > 40% unreliable (thresholds from Jurjevich et al., 2018). CV = (MOE / 1.645) / rate × 100."
+  )
+```
+
+```{r}
+rel_counts <- bind_rows(
+  poverty_tested %>% count(reliability = reliability_2006_2010) %>% mutate(period = "2006–2010"),
+  poverty_tested %>% count(reliability = reliability_2013_2017) %>% mutate(period = "2013–2017")
+) %>%
+  mutate(reliability = replace_na(reliability, "No data (NA)")) %>%
+  pivot_wider(names_from = period, values_from = n, values_fill = 0) %>%
+  mutate(reliability = factor(
+    reliability,
+    levels = c("Reliable", "Somewhat reliable", "Unreliable", "No data (NA)")
+  )) %>%
+  arrange(reliability)
+
+rel_counts %>%
+  gt() %>%
+  cols_label(reliability = "Reliability class") %>%
+  tab_header(
+    title = "Number of Tracts by Reliability of the Poverty Rate",
+    subtitle = "Philadelphia census tracts, by ACS period"
+  ) %>%
+  tab_source_note("Thresholds from Jurjevich et al. (2018): CV < 12% reliable, 12–40% somewhat reliable, > 40% unreliable.")
+```
+
+In 2006–2010, `r pct_rel_10`% of tracts have a reliable poverty rate and `r pct_unrel_10`% are unreliable. In 2013–2017 the figures are `r pct_rel_17`% and `r pct_unrel_17`%. This means that a fairly large share of the tract-level estimates have some uncertainty even before comparing the two periods. When we compare the two periods, the uncertainty becomes larger because the errors from both estimates have to be taken into account.
+
+### Step 6: Error bars for the change
+
+The article's headline claims are about the *largest* increases, so I plot the 20 tracts with the biggest estimated increase in poverty, with their 90% margins of error.
+
+```{r}
+#| fig-height: 7
+top20 <- poverty_tested %>%
+  filter(!is.na(change_rate), !is.na(moe_diff)) %>%
+  mutate(NAME = str_remove(NAME, ", Philadelphia County, Pennsylvania")) %>%
+  slice_max(change_rate, n = 20, with_ties = FALSE)
+bottom20  <- poverty_tested %>%
+  filter(!is.na(change_rate), !is.na(moe_diff)) %>%
+  mutate(NAME = str_remove(NAME, ", Philadelphia County, Pennsylvania")) %>%
+  slice_min(change_rate, n = 20, with_ties = FALSE)
+
+all_error <- rbind(top20,bottom20)
+
+T_n_top_sig   <- sum(top20$significant)
+T_med_moe_top <- round(median(top20$moe_diff), 1)
+T_min_top     <- round(min(top20$change_rate), 1)
+T_max_top     <- round(max(top20$change_rate), 1)
+
+B_n_top_sig   <- sum(bottom20$significant)
+B_med_moe_top <- round(median(bottom20$moe_diff), 1)
+B_min_top     <- round(min(bottom20$change_rate), 1)
+B_max_top     <- round(max(bottom20$change_rate), 1)
+
+ggplot(all_error, aes(x = change_rate, y = reorder(NAME, change_rate), color = direction)) +
+  geom_pointrange(aes(xmin = change_rate - moe_diff, xmax = change_rate + moe_diff)) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  scale_color_manual(
+    values = c(
+      "Significant increase" = "#de2d26",
+      "Not significant"      = "grey45"
+    )
+  ) +
+  labs(
+  title = "Largest Increases and Decreases in Poverty Rate",
+  subtitle = "Philadelphia census tracts, 2006–2010 to 2013–2017. Bars show the 90% margin of error",
+    x = "Change in poverty rate (percentage points)",
+    y = NULL,
+    color = NULL,
+    caption = "Source: ACS 5-year estimates (B07012). Top 20 tracts by estimated change."
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+The 20 largest estimated increases range from `r T_min_top` to `r T_max_top` percentage points. But their margins of error are large: the median is about ±`r T_med_moe_top` points. Only `r T_n_top_sig` of the 20 have a bar that stays clear of zero. This is important because the largest estimated changes are not necessarily the most reliable ones. When there are many tracts and each estimate has some sampling error, some of the biggest changes can happen partly because of that error.
+
+The 20 Bottom estimated increases range from `r B_min_top` to `r B_max_top` percentage points. And all of their change in proverty rate is not significant.
+
+### Step 7: Where are the detectable changes?
+
+```{r}
+poverty_map <- tract_geometry %>%
+  left_join(
+    poverty_tested %>% select(GEOID, direction, reliability_2006_2010, reliability_2013_2017),
+    by = "GEOID"
+  ) %>%
+  mutate(
+    direction = replace_na(direction, "No data"),
+    reliability_2006_2010 = replace_na(reliability_2006_2010, "No data"),
+    reliability_2013_2017 = replace_na(reliability_2013_2017, "No data")
+  )
+
+ggplot(poverty_map) +
+  geom_sf(aes(fill = direction), color = "white", linewidth = 0.1) +
+  scale_fill_manual(
+    values = c(
+      "Significant increase" = "#de2d26",
+      "Significant decrease" = "#2b8cbe",
+      "Not significant"      = "#d9d9d9",
+      "No data"              = "#636363"
+    )
+  ) +
+  labs(
+    title = "Where Is the Change in Poverty Statistically Detectable?",
+    subtitle = "2013–2017 vs. 2006–2010, Philadelphia census tracts, 90% confidence",
+    fill = NULL,
+    caption = "Grey = change not distinguishable from zero. Dark = no data (no population)."
+  ) +
+  theme_void()
+```
+
+```{r}
+#| layout-ncol: 2
+reliability_colors <- c(
+  "Reliable" = "#2ca25f", "Somewhat reliable" = "#fec44f",
+  "Unreliable" = "#de2d26", "No data" = "#636363"
+)
+
+ggplot(poverty_map) +
+  geom_sf(aes(fill = reliability_2006_2010), color = "white", linewidth = 0.1) +
+  scale_fill_manual(values = reliability_colors) +
+  labs(title = "Reliability of Poverty Rate", subtitle = "ACS 2006–2010", fill = NULL) +
+  theme_void()
+
+ggplot(poverty_map) +
+  geom_sf(aes(fill = reliability_2013_2017), color = "white", linewidth = 0.1) +
+  scale_fill_manual(values = reliability_colors) +
+  labs(title = "Reliability of Poverty Rate", subtitle = "ACS 2013–2017", fill = NULL) +
+  theme_void()
+```
+
+## Part 3 — Adjudicate
+
+To check the article's citywide number, I also added up all tracts (using `moe_sum()` for the counts, then `moe_prop()` for the rate).
+
+```{r}
+city_check <- poverty_wide %>%
+  summarise(
+    below_10 = sum(`estimate_below_poverty_2006-2010`, na.rm = TRUE),
+    total_10 = sum(`estimate_total_2006-2010`, na.rm = TRUE),
+    below_17 = sum(`estimate_below_poverty_2013-2017`, na.rm = TRUE),
+    total_17 = sum(`estimate_total_2013-2017`, na.rm = TRUE),
+    moe_below_10 = moe_sum(`moe_below_poverty_2006-2010`, `estimate_below_poverty_2006-2010`, na.rm = TRUE),
+    moe_total_10 = moe_sum(`moe_total_2006-2010`, `estimate_total_2006-2010`, na.rm = TRUE),
+    moe_below_17 = moe_sum(`moe_below_poverty_2013-2017`, `estimate_below_poverty_2013-2017`, na.rm = TRUE),
+    moe_total_17 = moe_sum(`moe_total_2013-2017`, `estimate_total_2013-2017`, na.rm = TRUE)
+  ) %>%
+  mutate(
+    rate_10 = below_10 / total_10 * 100,
+    rate_17 = below_17 / total_17 * 100,
+    moe_rate_10 = moe_prop(below_10, total_10, moe_below_10, moe_total_10) * 100,
+    moe_rate_17 = moe_prop(below_17, total_17, moe_below_17, moe_total_17) * 100,
+    change = rate_17 - rate_10,
+    moe_change = sqrt(moe_rate_10^2 + moe_rate_17^2)
+  )
+
+city_r10 <- round(city_check$rate_10, 1)
+city_r17 <- round(city_check$rate_17, 1)
+city_chg <- round(city_check$change, 1)
+city_moe <- round(city_check$moe_change, 1)
+
+```
+
+
+
+**What the data supports** 
+
+The article's citywide figure of about 26% is close to my result. Summing the tracts gives a poverty rate of `r city_r17`% in 2013–2017. The rate was `r city_r10`%  in 2006–2010, which is a change of `r city_chg` percentage points (±`r city_moe`).
+
+The data also show that poverty increased in some parts of Philadelphia. `r n_up` tracts (`r pct_up`% of the tracts that could be tested) had a statistically significant increase. So the article is picking up a real pattern, although the size of the change is not equally clear in every tract.
+
+
+**What the data does not show clearly** 
+
+At the same time, the tract-level results do not show that poverty increased everywhere. `r n_notsig` of `r n_tested` testable tracts (`r pct_notsig`%) do not have a statistically significant change. There are also `r n_down` tracts with a statistically significant decrease.
+
+This makes the article's broader description of poverty “exploding” across “much of the city” harder to verify with the tract-level data. The data show increases in some places, but they also show many places where the change is not statistically distinguishable from zero.
+
+The article also describes Eastwick as having the largest increase. I cannot confirm that from my tract-level analysis. The largest estimated changes have fairly large margins of error, and only `r T_n_top_sig` of the top 20 increases are statistically significant.
+
+I also cannot use these data to say that Eastwick is now “much worse than during the depth of the downturn.” The 2006–2010 ACS is a five-year average, so it does not tell us exactly what happened during each year of the recession.
+
+
+
+**Cannot be determined.** 
+
+Some of the article's other claims cannot be checked with the data I used. For example, I cannot reproduce the poverty rates for Fairhill, Eastwick, Holmesburg, and Mayfair because the article does not explain which census tracts were included in each neighborhood.
+
+I also did not have the race-specific poverty variables needed to check the article's claims about poverty among white residents. The same problem applies to the median household income examples. In addition, I would need to know whether the dollar amounts in the article were adjusted for inflation.
+
+Finally, the explanations in the article, such as opioids, an aging population, immigration, and evictions, cannot be tested using the poverty-rate variables alone. These factors might help explain changes in poverty, but this analysis does not provide evidence about their individual effects.
+
+I did not attempt the optional neighborhood-aggregation extension.
+
+
+## Part 4 — Rewrite
+
+**Original central paragraph:** "In grim and startling detail, a new five-year federal survey of poverty in Philadelphia shows a city still not recovered from the Great Recession — with white poverty exploding, inequality becoming the norm, and an out-of-the-way neighborhood experiencing some of the worst ravages of privation."
+
+**Rewrite:**
+
+Philadelphia's poverty rate was about `r city_r17`% in 2013–2017, compared with `r city_r10`% in 2006–2010. Poverty increased significantly in `r n_up` census tracts and decreased significantly in `r n_down` tracts. However, most of the tracts that could be tested did not show a statistically significant change. This means that the increase in poverty was not the same across the whole city.
+
+The data also show why we need to be careful with individual neighborhood comparisons. Some of the largest estimated changes have large margins of error, and I cannot confirm from the tract-level data that Eastwick had the largest increase. The ACS data can show where poverty rates were high and where some changes were large enough to be statistically significant, but they cannot tell us by themselves why those changes happened.
+
+

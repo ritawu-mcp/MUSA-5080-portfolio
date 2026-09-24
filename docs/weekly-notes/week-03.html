@@ -250,7 +250,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>ggplot(tract_data) + aes(x = population, y = MOE_pct) + geom_point()</p>
 <pre><code>   inside aes()                 |            Not inside</code></pre>
 <p>aes(color = reliability) aes(color = “blue”) IT WILL NOT WORK | geom_point(color = “blue”) THIS IS RIGHT</p>
-<p>geometery options: - how a variable is speard out geom_histogram() only x variable - how do two varibles relate? geom_point() - how to groups compare geom_boxplot() geom_ - how do things change over time geom_line() - how uncertainty is a value geom_errorbar()</p>
+<p>geometery options: - how a variable is speard out geom_histogram() only x variable - how do two varibles relate? geom_point() - how two groups compare geom_boxplot() geom_ - how do things change over time geom_line() - how uncertainty is a value geom_errorbar()</p>
 <p>small multiple plots: - facet_wraps(~reliability)</p>
 <p>Error Bar</p>
 <p>county_data %&gt;% ggplot(aes(x = NAME, y = estimate)) + geom_col() + geom_errorbar(aes(ymin = estimate - moe, ymax = estimate + moe))</p>
@@ -772,7 +772,7 @@ high: 30 high sampling error</p>
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>geometery options:</span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how a variable is speard out         geom_histogram()    only x variable</span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how do two varibles relate?          geom_point()</span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how to groups compare                geom_boxplot()  geom_</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how two groups compare                geom_boxplot()  geom_</span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how do things change over time       geom_line()</span>
 <span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>how uncertainty is a value           geom_errorbar()</span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>

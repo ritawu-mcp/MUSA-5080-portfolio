@@ -43,7 +43,7 @@ ggplot(tract_data) +
 geometery options:
 - how a variable is speard out         geom_histogram()    only x variable
 - how do two varibles relate?          geom_point()
-- how to groups compare                geom_boxplot()  geom_
+- how two groups compare                geom_boxplot()  geom_
 - how do things change over time       geom_line()
 - how uncertainty is a value           geom_errorbar()
 

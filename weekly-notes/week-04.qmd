@@ -1,0 +1,112 @@
+---
+title: "Week 4:how to process geospatial data"
+description: "table function and acs data"
+date: 2026-09-18
+---
+
+## What We Did
+
+
+
+## Key Concepts
+
+
+
+## 0904 Notes
+
+Geoid    med_income_23                  Geoid   med_income_15
+100     82000                           100     61000
+200     31000                           200     27000
+300     45000                           400     39000
+
+GEOID must be the same (types of variable, like both integer)
+left_join(income_23, income_15, by = "GEOID")
+
+Geoid   med_income_23     med_income_25   Geometery
+100     82000             61000           Ploygon (75.37, 37.12)
+200     31000             27000
+300     45000             NA
+
+get_acs(, geometery = TRUE)
+
+GIS: shp, gdb, 
+spacial data: sf: simple functions
+
+coordinate reference systems (CRS)
+    Geographic                              
+    united degrees (angular)   
+    3d ellipsoid that try to simplify the earth surface + LOCATION
+    clark 1866 + meades ranch, KS -> North American Datum of 1927 (NAD 27)
+    lat:equator + 90
+    Long: 0-180 
+    NAD 83 (earth centered)
+    WGS 84 (GPS standard)
+    
+align your dataset
+when project the dataset: shapes, areas, distance, disrector can all be wrong
+cylindrical: the countries on the side (NOT EQUATOR) becomes bigger. equator: line of tangency, no distortion 
+transverse cylindrical 
+conic projection: good for northen countries (if from top)
+do not use a flat projection for US
+Planar, 
+
+
+Projected coordinate systems
+- and x-y plan
+- state plane
+- units: ft or meter
+- good for local mapping
+
+
+EPSG        NAME                      units
+2272        PA south State Plane      US feet or US meters
+UTM         60 zones, no negative numbers
+5070        alber equal area         meters
+4326        WGS 84                    degrees
+4269        NAD 83                    degrees
+
+How can we change the ordinance:
+- st_crs(data)
+tells you what projection the data is on, need to know the units
+- st_set_crs() -> 2272
+  adding the correct label, only when it is missing or wrong
+- st_transform ()
+  change coordinate system
+  
+st_buffer(station, 500)
+500 is in the units of the layer
+
+
+------|----|
+ A    | B  |
+      |    |
+ |--| |    |
+ |C | |    |
+ |--| |    |
+------|----|
+                  A,B     A,C     B,C
+st_intersect()    T       T      F
+St_touches()      T       F      F
+St_within()       F       T      T
+
+
+example: how many tract near (0.5 mile) from the station
+st_filter()  -> count of tracts that are completely within the buffer
+st_intersection()  -> shapes change, break the shape up whenever it runs the command. more shapes
+st_union() -> everything 
+
+st_join(stations, tracts) -> assign the tract attribute to the station 
+st_distance() -> returns a matrix with the distance between all the stations and tracts
+
+            1 2 3 4 5 tracts
+stations 1
+         2
+         3
+         4
+         5
+## Reflection
+
+
+
+## Questions I Still Have
+
