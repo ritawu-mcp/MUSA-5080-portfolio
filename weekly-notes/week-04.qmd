@@ -87,7 +87,7 @@ st_buffer(station, 500)
                   A,B     A,C     B,C
 st_intersect()    T       T      F
 St_touches()      T       F      F
-St_within()       F       T      T
+St_within()       F       T      F
 
 
 example: how many tract near (0.5 mile) from the station

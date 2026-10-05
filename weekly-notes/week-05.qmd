@@ -1,0 +1,90 @@
+---
+title: "Week 4:how to process geospatial data"
+description: "table function and acs data"
+date: 2026-09-18
+---
+
+## What We Did
+
+
+
+## Key Concepts
+
+
+
+## 0925 Notes
+GEOID   med_rent   med_inc   pct_renters   pct_ba   n_stations     rent_cv    geometery
+100     1650       82000     0.71          0.64     3              9.8        (70.50, 60.9)
+
+where do rent exceed our expectation?
+medium income: $30000  ->   $1000
+```````````````$100000 ->   $3000
+```````````````$255000 ->   $6000
+
+Y    =   f(x)    +    C
+rent     income       everything else
+ 
+          linear    lassol ridge      logistic    trees    random forest    boosting   newral networks
+rigid ---------------------------------------------------------------------------------------------------flexible
+(easy to exlain & interpret)
+
+parametric                      vs.       non-parametric
+assume a functional form
+where it intersects
+slope (b)
+y = b2 + b1*x1 +E  
+b1: inference
+y: prediction
+
+R^2  
+
+
+about that line
+observation - prediction = error
+- least squares: minimum sum of squared errors
+
+m1 <- lm(med_rent ~ med_inc, data = tracts)
+summary(m1)
+                 estimate      SE    t_value     p_value
+intersect         690         35      18.2        <2e - 16
+med_inc           0.0081      0.0005  16.2        <2e - 16
+                dollar of monthly rent per dollar of annual income in 10 thousand (81/month)
+                
+
+Noise in Y goes in the residuals
+- systematic variation (not noise)
+- Noise in X - > flatten the slope
+
+fit v. predictions
+- R^2: on the data it was fit to
+- test / train  
+  80%                       20%                                               RMSE: Lower is better
+  training                  test
+                            19,000 -> 500-400  = 100^2
+                            29,000 -> 900 - 1200 = 300^2
+
+Cross Validation (CV)
+K-fold        - if we have 100 records
+1   2   3   4   5
+20  20  20  20  20         -> 1 becomes the tester, rest are trainers    RMSE        100
+
+1   2   3   4   5          -> 2 becomes the tester, rest are trainers    RMSE        300
+
+5 times, average RMSE
+
+overfitting: 
+- perfectly fit every points, error very small
+- learned the noise! may fail on the test the dataset
+
+how to peak features
+- multicollinearity -> mostly harmless, but check
+
+homoskedashic: residuals very random
+or can have a systematic pattern: what if residuals become bigger if the income is high
+
+## Reflection
+
+
+
+## Questions I Still Have
+

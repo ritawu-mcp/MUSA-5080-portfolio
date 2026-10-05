@@ -1,0 +1,757 @@
+---
+title: "Assignment: Building Features, Watching What Happens"
+subtitle: "MUSA 5080 · Integrates Weeks 1–5 · Due Friday, October 16"
+author: "Rita Wu"
+format:
+  html:
+    toc: true
+    code-fold: show
+    code-tools: true
+execute:
+  warning: false
+  message: false
+freeze: false
+---
+## Assignment Background
+
+This assignments tries to predict the census-tract level poverty rate in Philadelphia based on variables include unemployment rate, median household income, percentage of building built before 1940, distance from schools, and drugs use rate per square miles.  
+
+---
+
+## Part 0: Setup
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(caret)
+
+#Sys.getenv("CENSUS_API_KEY") != ""   # should print TRUE
+```
+
+### The cross-validation helper
+
+This function runs 10-fold cross-validation with the same seed every time, so every model in your log is tested on the same folds. 
+
+```{r}
+#| label: cv-helper
+ctrl <- trainControl(method = "cv", number = 10)
+
+cv_rmse <- function(formula, data) {
+  df <- if (inherits(data, "sf")) st_drop_geometry(data) else data
+  vars <- all.vars(formula)
+  bad <- vars[sapply(vars, function(v) any(is.na(df[[v]])))]
+  if (length(bad) > 0) {
+    stop("These variables have NAs: ", paste(bad, collapse = ", "),
+         ". Fill them or choose another variable (Rule 1: don't drop rows).")
+  }
+  set.seed(5080)
+  fit <- train(formula, data = df, method = "lm", trControl = ctrl)
+  fit$results$RMSE
+}
+```
+
+### The model log
+
+
+```{r}
+#| label: log-start
+model_log <- tibble(
+  model   = character(),
+  added   = character(),
+  cv_rmse = numeric(),
+  notes   = character()
+)
+```
+
+---
+
+## Part 1: Choose your outcome
+
+The poverty rate reflects the economic conditions of people in a community. A high poverty rate is important to consider in long-range planning, especially for equity planning. When planning for public investment, job assistance, and housing support, areas with higher poverty rates may need more attention and resources.
+
+
+### 1A:outcome and baseline predictors
+
+the 3 baseline predictors i choose are：unemployment rate, median household income, and percentage of housing units built before 1940.
+Why these 3 variables are relevant? 
+
+- Unemployment rate: It shows the job conditions in an area. I expect areas with higher unemployment to have higher poverty rates.
+- Median household income: It is a strong indicator of the socioeconomic conditions of an area. Areas with lower household incomes may also have higher poverty rates.
+- Housing units built before 1940: It describes the age of the housing stock and can be used as a proxy for broader neighborhood conditions that may be related to poverty.
+
+Get ACS variables in Philadelphia in 2023.
+
+```{r}
+#| label: pull
+#| output: false
+philly_tracts <- get_acs(
+  geography = "tract",
+  state = "PA",
+  county = "Philadelphia",
+  variables = c(
+    total_pop = "B01003_001",
+    
+
+    below_poverty = "B07012_002",
+    total_poverty = "B07012_001",
+    
+
+    labor_force = "B23025_003",
+    unemployed = "B23025_005",
+    
+    median_household_income = "B19013_001",
+    
+    housing_built_before_1940 = "B25034_002",
+    total_housing = "B25034_001",
+    
+    renter_occupied = "B25003_003",
+    total_occupied = "B25003_001"
+  ),
+  year = 2023,
+  output = "wide",
+  geometry = TRUE
+) %>%
+  st_transform(2272)
+```
+Calculate Poverty rate, Unemployment rate, and percentage of housing built before 1940.
+
+```{r}
+philly_tracts <- philly_tracts %>%
+  mutate(
+    poverty_rate =
+      below_povertyE / total_povertyE * 100,
+    
+    unemployment_rate =
+      unemployedE / labor_forceE * 100,
+    
+    pct_built_before_1940 =
+      housing_built_before_1940E / total_housingE * 100
+  )
+```
+
+Calculate the Margin of Error of each indicators and the reliability CVs.
+```{r}
+#| label: build-outcome
+
+philly_tracts <- philly_tracts %>%
+  mutate(
+    poverty_rate =
+      below_povertyE / total_povertyE * 100,
+
+    poverty_rate_moe =
+      moe_prop(
+        below_povertyE,
+        total_povertyE,
+        below_povertyM,
+        total_povertyM
+      ) * 100,
+
+    poverty_rate_cv =
+      (poverty_rate_moe / 1.645) /
+      poverty_rate * 100
+  )
+
+philly_tracts <- philly_tracts %>%
+  mutate(
+  unemployment_rate =
+      unemployedE / labor_forceE * 100,
+
+    unemployment_rate_moe =
+      moe_prop(
+        unemployedE,
+        labor_forceE,
+        unemployedM,
+        labor_forceM
+      ) * 100,
+
+    unemployment_rate_cv =
+      (unemployment_rate_moe / 1.645) /
+      unemployment_rate * 100
+  )
+
+philly_tracts <- philly_tracts %>%
+  mutate(
+    median_income_moe =
+      median_household_incomeM,
+
+    median_income_cv =
+      (median_income_moe / 1.645) /
+      median_household_incomeE * 100
+  )
+
+philly_tracts <- philly_tracts %>%
+  mutate(
+ pct_built_before_1940_moe =
+    moe_prop(
+        housing_built_before_1940E,
+        total_housingE,
+        housing_built_before_1940M,
+        total_housingM
+      ) * 100,
+
+    pct_built_before_1940_cv =
+      (pct_built_before_1940_moe / 1.645) /
+      pct_built_before_1940 * 100,
+  )
+
+```
+
+### 1B: Is it reliable enough to model?
+
+
+```{r}
+#| label: reliability
+# How many tracts have no value for your outcome?
+sum(is.na(philly_tracts$poverty_rate))
+sum(is.na(philly_tracts$unemployment_rate))
+sum(is.na(philly_tracts$median_household_incomeE))
+sum(is.na(philly_tracts$pct_built_before_1940))
+
+
+# How reliable is it?
+summary(philly_tracts$poverty_rate_cv)
+
+philly_tracts %>%
+  mutate(reliability = case_when(
+    poverty_rate_cv < 12  ~ "High",
+    poverty_rate_cv <= 40 ~ "Moderate",
+    TRUE       ~ "Low"
+  )) %>%
+  st_drop_geometry() %>%
+  count(reliability)
+
+
+# What does the distribution look like?
+ggplot(philly_tracts, aes(x = poverty_rate)) +
+  geom_histogram(bins = 30) +
+  theme_minimal()
+```
+19 tracts have no values for the poverty rate, 19 tracts have no values for unemployment rate,27 tracts have no median household income estimate, 19 tracts have no value for percent built before 1940
+
+
+## why would an agency want to predict it, and how reliable is it?
+The poverty rate is an important outcome for planning because it reflects the economic conditions of people in a community. Areas with higher poverty rates may need more attention when cities plan public investment, job assistance, housing support, and access to services. The outcome is usable for modeling, although its reliability varies across tracts. Only 7 tracts have high reliability, while 324 have moderate reliability and 77 have low reliability. I therefore treat the poverty estimates as usable but recognize that some tract-level estimates are less certain.
+
+### 1C: Decide which tracts to model
+the data set Tracts include all Philadelphia tracts whose baseline predictors are not NA. I examine the lost tracts (which do have NAs for the variables) and found most of them are non-residential tracts. 
+
+```{r}
+#| label: filter
+#| output: false
+nrow(philly_tracts)
+
+tracts <- philly_tracts %>%
+  filter(total_popE > 0,
+         !is.na(poverty_rate),
+         !is.na(unemployment_rate),
+         !is.na(median_household_incomeE),
+         !is.na(pct_built_before_1940))
+nrow(tracts)
+
+lost_tracts <- philly_tracts %>%
+  filter(
+    total_popE <= 0 |
+    is.na(poverty_rate) |
+    is.na(unemployment_rate) |
+    is.na(median_household_incomeE) |
+    is.na(pct_built_before_1940)
+  )
+
+lost_tracts %>%
+  select(GEOID, NAME, total_popE,
+         poverty_rate,
+         unemployment_rate,
+         median_household_incomeE,
+         pct_built_before_1940)
+```
+
+```{R}
+ggplot() +
+  geom_sf(data = philly_tracts, fill = "grey90", color = "white") +
+  geom_sf(data = lost_tracts, fill = "red", color = "black") +
+  theme_void()
+```
+
+###*How many tracts did you lose, and what kinds of places are they?
+I lost 27 tracts. Most of them are places with little or no residential population, including the airport, Fairmount Park, large parks, and other open or institutional areas. They are spread across different parts of Philadelphia rather than concentrated in one neighborhood. I therefore kept the remaining residential tracts for modeling.
+
+
+---
+
+## Part 2: Baseline model
+
+### 2A: Look first
+
+This sections provides the scatter points and trend lines for 
+  
+  1. unemployment rate and poverty rate
+  2. median household income and poverty rate
+  3. percentage of building built before 1940 and poverty rate
+  
+We can see that:
+The scatter plots show different relationships between the baseline predictors and poverty rate. Poverty rate generally increases as unemployment rate increases, while it decreases as median household income increases. The relationship between poverty rate and the percentage of housing built before 1940 is much weaker, with no clear pattern in the scatterplot.
+
+```{r}
+#| label: look
+ggplot(tracts, aes(x = poverty_rate, y = unemployment_rate)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  scale_x_continuous() +
+  scale_y_continuous() +
+  labs(x = "Poverty Rate", y = "Unemployment Rate",
+       title = "Poverty Rate and unemployment rate, Philadelphia tracts") +
+  theme_minimal()
+
+ggplot(tracts, aes(x = poverty_rate, y = median_household_incomeE)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  scale_x_continuous() +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = "Poverty Rate", y = "Median Household Income",
+       title = "Poverty Rate and Median Household Income, Philadelphia tracts") +
+  theme_minimal()
+
+ggplot(tracts, aes(x = poverty_rate, y = pct_built_before_1940)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  scale_x_continuous() +
+  scale_y_continuous() +
+  labs(x = "Poverty Rate", y = "Percent of houisng built before 1940",
+       title = "Poverty Rate and old housing percentage, Philadelphia tracts") +
+  theme_minimal()
+```
+
+### 2B: Fit and log
+I used these 3 variables to train my first model.
+
+```{r}
+#| label: m1
+f1 <- poverty_rate ~ unemployment_rate + median_household_incomeE + pct_built_before_1940
+
+m1 <- lm(f1, data = tracts)
+summary(m1)
+
+model_log <- model_log %>%
+  add_row(model = "m1", added = "ACS baseline",
+          cv_rmse = cv_rmse(f1, tracts),
+          notes = "ACS baseline model using unemployment, median household income, and housing age.")
+
+model_log
+```
+
+On tracts it hasn't seen, the baseline model misses the poverty rate by about 9.63 percentage points on average.
+
+
+### 2C: Where is the baseline wrong?
+
+```{r}
+#| label: resid-map-1
+tracts <- tracts %>% mutate(resid_m1 = residuals(m1))
+
+p_baseline <- ggplot(tracts) +
+  geom_sf(aes(fill = resid_m1), color = NA) +
+  scale_fill_gradient2(low = "#2166ac", mid = "grey95", high = "#b2182b", midpoint = 0) +
+  theme_void() +
+  labs(title = "Baseline model: where it's wrong",
+       subtitle = "Red = actual higher than predicted",
+       fill = "Residual")
+
+p_baseline
+```
+
+The residuals seem to cluster in Center City and North Philadelphia. These areas may have neighborhood characteristics that are not captured by the ACS variables in the baseline model, such as differences in housing conditions, access to services, or other local characteristics. I therefore chose drug-related incidents and schools as two types of spatial data that might capture some of these local differences.
+
+---
+
+## Part 3: Getting data from Philadelphia's open data portal
+
+```{r}
+#| label: carto-helper
+carto_get <- function(sql) {
+  url <- paste0("https://phl.carto.com/api/v2/sql?format=GeoJSON&q=", URLencode(sql))
+  st_read(url, quiet = TRUE)
+}
+```
+
+
+
+```{r}
+#| label: explore-values
+# What kinds of crime are in the incidents table in 2023?
+url <- paste0("https://phl.carto.com/api/v2/sql?format=csv&q=",
+              URLencode("SELECT text_general_code, COUNT(*) AS n
+                         FROM incidents_part1_part2
+                         WHERE dispatch_date >= '2023-01-01' AND dispatch_date < '2024-01-01'
+                         GROUP BY text_general_code ORDER BY n DESC"))
+variable_list <- read_csv(url)
+```
+
+
+I chose drug law violations because they may capture neighborhood conditions that are not included in the ACS variables. A higher concentration of drug-related incidents may reflect differences in neighborhood conditions, safety, or access to services that could be related to poverty.
+
+Meanwhile, I also use school data. Schools are where people get educated and serves as a vital social infrastructure. I assume that being closer to schools may reduce poverty.
+
+```{r}
+#| label: my-layers
+layer1 <- carto_get(
+  "SELECT the_geom, text_general_code
+   FROM incidents_part1_part2
+   WHERE dispatch_date >= '2023-01-01'
+     AND dispatch_date < '2024-01-01'
+     AND text_general_code = 'Narcotic / Drug Law Violations'"
+) %>%
+  st_transform(st_crs(tracts))
+
+
+layer2 <- st_read(
+  "https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/Schools/FeatureServer/0/query?where=1%3D1&outFields=*&f=geojson"
+) %>%
+  st_transform(st_crs(tracts))
+
+drug <- layer1 %>% filter(!st_is_empty(layer1))
+school <- layer2 %>% filter(!st_is_empty(layer2))
+```
+
+---
+
+## Part 4: Building spatial features
+
+I calculate the density of drug crime, both geographically and proportionally (every 1000 people).
+I also calculate the distance to schools.
+
+I use unemployment rate, median household income, pct housing units built before 1940, dist school mi, drug per sqmi, drug_per_1k to train my second model m2.
+
+```{r}
+#| label: my-spatial
+
+tracts <- tracts %>%
+  mutate(n_drug = lengths(st_intersects(., drug)))
+
+summary(tracts$n_drug)
+
+tracts <- tracts %>%
+  mutate(
+    area_sqmi         = as.numeric(st_area(.)) / 27878400,   # sq ft in a sq mile
+    drug_per_sqmi = n_drug / area_sqmi,
+    drug_per_1k   = n_drug / total_popE * 1000
+  )
+
+
+tract_pts <- st_point_on_surface(tracts)   # always inside the tract, unlike a centroid
+
+nearest_idx <- st_nearest_feature(tract_pts, school)
+
+tracts <- tracts %>%
+  mutate(dist_school_mi = as.numeric(
+    st_distance(tract_pts, school[nearest_idx, ], by_element = TRUE)) / 5280)
+
+f_drug_count <- poverty_rate ~
+  unemployment_rate +
+  median_household_incomeE +
+  pct_built_before_1940 +
+  n_drug
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_drug_count",
+    added = "drug incident count",
+    cv_rmse = cv_rmse(f_drug_count, tracts),
+    notes = "Added raw drug incident count"
+  )
+
+f_drug_density <- poverty_rate ~
+  unemployment_rate +
+  median_household_incomeE +
+  pct_built_before_1940 +
+  drug_per_sqmi
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_drug_density",
+    added = "drug incidents per sq mile",
+    cv_rmse = cv_rmse(f_drug_density, tracts),
+    notes = "Added geographic drug density"
+  )
+
+f_drug_density_1k <- poverty_rate ~
+  unemployment_rate +
+  median_household_incomeE +
+  pct_built_before_1940 +
+  drug_per_1k
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_drug_density_1k",
+    added = "drug incidents per 1000 people",
+    cv_rmse = cv_rmse(f_drug_density, tracts),
+    notes = "Added geographic drug density"
+  )
+
+f_school_dist <- poverty_rate ~
+  unemployment_rate +
+  median_household_incomeE +
+  pct_built_before_1940 +
+  dist_school_mi
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_school_dist",
+    added = "distance to school",
+    cv_rmse = cv_rmse(f_school_dist, tracts),
+    notes = "Added distance to nearest school"
+  )
+
+f2 <- poverty_rate ~ unemployment_rate +
+  median_household_incomeE +
+  pct_built_before_1940 +
+  dist_school_mi +
+  drug_per_sqmi +
+  drug_per_1k
+
+m2 <- lm(f2, data = tracts)
+
+model_log <- model_log %>%
+  add_row(model = "m2", added = "distance to school, drug / sq mile, drug / 1k people",
+          cv_rmse = cv_rmse(f2, tracts),
+          notes = "ACS baseline model using unemployment, median household income, housing age, distance to school, drug / sq mile, and drug per 1000 people")
+
+# repeat for each feature
+model_log
+
+summary(m1)
+summary(m2)
+
+```
+The model with distance to schools are the only one that decrease the CV RMSE of the model, meaning there are less prediction error. Other variables related to drugs make the model less accurate.
+
+The most important variables are unemployment rate, median household income, and distance to school, which was added in M2. I expected the drug data to have an impact on poverty rate, but the drug variables did not improve the model much. In fact, M2 fits the observed data better, with R² increasing from 0.53 to 0.57, but its cross-validated RMSE is slightly higher than M1 (10.57 vs. 9.62). This may be because the added drug variables do not provide much additional information about poverty rate, so they improve the fit to the existing data without improving predictions on new tracts.
+
+---
+
+## Part 5: Transforming features
+
+
+I tried log for drug per square mile.
+I tried squared term for distance to school.
+I tried categorical variable for distance to school.
+
+```{r}
+#| label: log-look
+
+ggplot(tracts, aes(x = drug_per_sqmi)) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Distribution of Drug Incidents per Square Mile",
+    x = "Drug incidents per square mile",
+    y = "Number of tracts"
+  ) +
+  theme_minimal()
+
+ggplot(tracts, aes(x = log1p(drug_per_sqmi))) +
+  geom_histogram(bins = 30) +
+  labs(
+    title = "Log-transformed Drug Density",
+    x = "log(Drug incidents per square mile + 1)",
+    y = "Number of tracts"
+  ) +
+  theme_minimal()
+```
+The drug density variable is strongly right-skewed, with many tracts having low values and a smaller number of tracts having much higher values. I therefore tested a log transformation to reduce the influence of the long right tail.
+
+```{r}
+#| label: squared-look
+
+ggplot(tracts, aes(x = dist_school_mi, y = poverty_rate)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x + I(x^2),
+    se = FALSE
+  ) +
+  labs(
+    title = "Poverty Rate and Distance to School",
+    x = "Distance to nearest school (miles)",
+    y = "Poverty rate (%)"
+  ) +
+  theme_minimal()
+```
+The relationship between distance to school and poverty rate does not appear to be strongly linear. The fitted curve suggests that the relationship may change at different distances, so I tested a squared term for distance to school.
+
+
+```{r}
+#| label: my-transforms
+
+f_log <- poverty_rate ~ log1p(drug_per_sqmi)
+
+m_log <- lm(f_log, data = tracts)
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_log",
+    added = "log of drug_per_sqmi",
+    cv_rmse = cv_rmse(f_log, tracts),
+    notes = "Log-transformed drug density"
+  )
+
+# squared term
+f_sq <- poverty_rate ~ dist_school_mi + I(dist_school_mi^2)
+
+m_sq <- lm(f_sq, data = tracts)
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_sq",
+    added = "sq of dist_school_mi",
+    cv_rmse = cv_rmse(f_sq, tracts),
+    notes = "Squared term for distance to school"
+  )
+# categorical
+tracts <- tracts %>%
+  mutate(
+    ring = case_when(
+      dist_school_mi < 0.2 ~ "close to school",
+      dist_school_mi < 0.5 ~ "ok distance",
+      TRUE ~ "far from school"
+    ),
+    ring = factor(
+      ring,
+      levels = c("close to school", "ok distance", "far from school")
+    )
+  )
+
+tracts %>% 
+  st_drop_geometry() %>% 
+  count(ring)
+```
+The ring results show that each category has at least 20 variables that can be used to predict. As a result, the model are not based on a very small sample of variables. 
+
+```{r}
+#| label: categorical-look
+
+ggplot(tracts, aes(x = ring, y = poverty_rate)) +
+  geom_boxplot() +
+  labs(
+    title = "Poverty Rate by Distance-to-School Category",
+    x = "Distance to school",
+    y = "Poverty rate (%)"
+  ) +
+  theme_minimal()
+```
+I also tested distance to school as categories because the relationship may be easier to interpret as different levels of access rather than as a continuous linear relationship. I divided tracts into close, moderate, and far categories based on distance to the nearest school.
+
+```{R}
+
+m_cat_school <- lm(
+  poverty_rate ~ ring,
+  data = tracts
+)
+
+model_log <- model_log %>%
+  add_row(
+    model = "m_cat_school",
+    added = "school category",
+    cv_rmse = cv_rmse(poverty_rate ~ ring, tracts),
+    notes = "Categorical distance-to-school variable"
+  )
+
+model_log
+
+
+summary(m_log)
+summary(m_sq)
+summary(m_cat_school)
+```
+
+
+Among the three models I tested, the log model had the lowest CV RMSE (11.24), followed by the categorical model (13.72) and the squared model (13.94). However, these models use different variables, so the RMSE values do not isolate the effect of the transformation itself.
+
+For the categorical variable, “close to school” is the reference level. In the categorical-only model, tracts with an “ok distance” to school have a poverty rate about 1.83 percentage points lower than tracts that are close to a school. tracts with a “far distance” to school have a poverty rate about 8.22 percentage points lower than tracts that are close to a school. 
+
+---
+
+## Part 6: Your final model
+
+
+```{r}
+#| label: final
+f_final <- poverty_rate ~
+  unemployment_rate +
+  median_household_incomeE +
+  ring +
+  log1p(drug_per_sqmi)
+
+m_final <- lm(f_final, data = tracts)
+summary(m_final)
+
+model_log <- model_log %>%
+  add_row(
+    model = "final",
+    added = "unemployment + income + school-distance rings + log drug density",
+    cv_rmse = cv_rmse(f_final, tracts),
+    notes = "Baseline predictors plus log-transformed drug density and rings from school"
+  )
+
+
+model_log
+```
+
+The final model combines unemployment rate and median household income with school-distance categories and log-transformed drug density. I kept the variables and transformations that improved prediction based on CV RMSE rather than statistical significance alone. The final model has a CV RMSE of 8.99, which is lower than the baseline model's 9.62 and the spatial-feature model's 10.57. This suggests that the final model predicts poverty rate better on unseen tracts than the earlier models.
+
+### Where is the final model wrong?
+
+```{r}
+#| label: resid-map-2
+tracts <- tracts %>% mutate(resid_final = residuals(m_final))
+
+p_final <- ggplot(tracts) +
+  geom_sf(aes(fill = resid_final), color = NA) +
+  scale_fill_gradient2(low = "#2166ac", mid = "grey95", high = "#b2182b", midpoint = 0) +
+  theme_void() +
+  labs(title = "Final model: where it's wrong",
+       subtitle = "Red = actual higher than predicted",
+       fill = "Residual") +
+  scale_fill_gradient2(
+  low = "#2166ac",
+  mid = "grey95",
+  high = "#b2182b",
+  midpoint = 0,
+  limits = c(-25, 45)
+)
+
+library(patchwork)
+p_baseline + p_final
+
+```
+
+The residual clusters did not shrink substantially after adding the new features and transformations. The main clusters remain in similar areas, especially around Center City and North Philadelphia. This suggests that the final model improves overall prediction but still does not capture some spatially clustered neighborhood characteristics.
+
+### Are the biggest misses in the least reliable tracts?
+
+```{r}
+#| label: fog
+ggplot(tracts, aes(x = poverty_rate_cv, y = abs(resid_final))) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  labs(x = "CV of your outcome estimate (%)", y = "Size of the miss") +
+  theme_minimal()
+```
+
+The plot suggests that some tracts with low CV still have relatively large prediction errors. This means that a more reliable ACS estimate does not necessarily mean that the regression model predicts the tract well. The CV measures uncertainty in the ACS estimate, while the residual measures how far the model's prediction is from the observed estimate.
+
+---
+
+## Part 7: Reflection 
+
+The feature that helped the most was the log-transformed drug density when it was combined with unemployment rate, median household income, and school-distance categories. The final model reduced CV RMSE from 9.63 for the baseline model to 8.99. In contrast, the original spatial-feature model had a higher CV RMSE of 10.57, so adding spatial variables does not automatically improve prediction. The drug variables may overlap with information already captured by unemployment and income, while the log transformation helped reduce the influence of tracts with very high drug-incident densities. 
+、
+
+For example, the coefficient for unemployment rate in the final model is 0.254. The β̂ interpretation is that, holding the other variables constant, a one-percentage-point increase in the unemployment rate is associated with about a 0.254 percentage-point increase in predicted poverty rate. In terms of ŷ, if two otherwise similar tracts differ by one percentage point in unemployment, the model predicts the tract with higher unemployment to have a poverty rate about 0.254 percentage points higher.
+
+The residual map shows that some spatial patterns remain, especially around Center City and North Philadelphia. One thing I would want to measure next is access to other neighborhood resources and services, such as transit, food stores, or community facilities. These data could come from Philadelphia's open data portal or other city and regional open-data sources.
+
+Finally, the last plot shows that low ACS CV does not necessarily mean a small prediction error. Some tracts with relatively reliable poverty estimates still have large residuals. This suggests that the remaining error is not simply caused by ACS sampling uncertainty; some of it likely reflects neighborhood characteristics that are not included in the model.
+
+
+

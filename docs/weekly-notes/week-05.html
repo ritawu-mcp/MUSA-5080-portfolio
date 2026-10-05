@@ -172,7 +172,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#what-we-did" id="toc-what-we-did" class="nav-link active" data-scroll-target="#what-we-did">What We Did</a></li>
   <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts">Key Concepts</a></li>
-  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">0904 Notes</a></li>
+  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">0925 Notes</a></li>
+  <li><a href="#reflection" id="toc-reflection" class="nav-link" data-scroll-target="#reflection">Reflection</a></li>
   <li><a href="#questions-i-still-have" id="toc-questions-i-still-have" class="nav-link" data-scroll-target="#questions-i-still-have">Questions I Still Have</a></li>
   </ul>
 </nav>
@@ -217,25 +218,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="key-concepts">Key Concepts</h2>
 </section>
 <section id="notes" class="level2">
-<h2 class="anchored" data-anchor-id="notes">0904 Notes</h2>
-<p>Geoid med_income_23 Geoid med_income_15 100 82000 100 61000 200 31000 200 27000 300 45000 400 39000</p>
-<p>GEOID must be the same (types of variable, like both integer) left_join(income_23, income_15, by = “GEOID”)</p>
-<p>Geoid med_income_23 med_income_25 Geometery 100 82000 61000 Ploygon (75.37, 37.12) 200 31000 27000 300 45000 NA</p>
-<p>get_acs(, geometery = TRUE)</p>
-<p>GIS: shp, gdb, spacial data: sf: simple functions</p>
-<p>coordinate reference systems (CRS) Geographic<br>
-united degrees (angular)<br>
-3d ellipsoid that try to simplify the earth surface + LOCATION clark 1866 + meades ranch, KS -&gt; North American Datum of 1927 (NAD 27) lat:equator + 90 Long: 0-180 NAD 83 (earth centered) WGS 84 (GPS standard)</p>
-<p>align your dataset when project the dataset: shapes, areas, distance, disrector can all be wrong cylindrical: the countries on the side (NOT EQUATOR) becomes bigger. equator: line of tangency, no distortion transverse cylindrical conic projection: good for northen countries (if from top) do not use a flat projection for US Planar,</p>
-<p>Projected coordinate systems - and x-y plan - state plane - units: ft or meter - good for local mapping</p>
-<p>EPSG NAME units 2272 PA south State Plane US feet or US meters UTM 60 zones, no negative numbers 5070 alber equal area meters 4326 WGS 84 degrees 4269 NAD 83 degrees</p>
-<p>How can we change the ordinance: - st_crs(data) tells you what projection the data is on, need to know the units - st_set_crs() -&gt; 2272 adding the correct label, only when it is missing or wrong - st_transform () change coordinate system</p>
-<p>st_buffer(station, 500) 500 is in the units of the layer</p>
-<p>——|—-| A | B | | | |–| | | |C | | | |–| | | ——|—-| A,B A,C B,C st_intersect() T T F St_touches() T F F St_within() F T F</p>
-<p>example: how many tract near (0.5 mile) from the station st_filter() -&gt; count of tracts that are completely within the buffer st_intersection() -&gt; shapes change, break the shape up whenever it runs the command. more shapes st_union() -&gt; everything</p>
-<p>st_join(stations, tracts) -&gt; assign the tract attribute to the station st_distance() -&gt; returns a matrix with the distance between all the stations and tracts</p>
-<pre><code>        1 2 3 4 5 tracts</code></pre>
-<p>stations 1 2 3 4 5 ## Reflection</p>
+<h2 class="anchored" data-anchor-id="notes">0925 Notes</h2>
+<p>GEOID med_rent med_inc pct_renters pct_ba n_stations rent_cv geometery 100 1650 82000 0.71 0.64 3 9.8 (70.50, 60.9)</p>
+<p>where do rent exceed our expectation? medium income: $30000 -&gt; $1000 <code>$100000 -&gt;   $3000</code>$255000 -&gt; $6000</p>
+<p>Y = f(x) + C rent income everything else</p>
+<pre><code>      linear    lassol ridge      logistic    trees    random forest    boosting   newral networks</code></pre>
+<p>rigid —————————————————————————————————flexible (easy to exlain &amp; interpret)</p>
+<p>parametric vs.&nbsp;non-parametric assume a functional form where it intersects slope (b) y = b2 + b1*x1 +E<br>
+b1: inference y: prediction</p>
+<p>R^2</p>
+<p>about that line observation - prediction = error - least squares: minimum sum of squared errors</p>
+<p>m1 &lt;- lm(med_rent ~ med_inc, data = tracts) summary(m1) estimate SE t_value p_value intersect 690 35 18.2 &lt;2e - 16 med_inc 0.0081 0.0005 16.2 &lt;2e - 16 dollar of monthly rent per dollar of annual income in 10 thousand (81/month)</p>
+<p>Noise in Y goes in the residuals - systematic variation (not noise) - Noise in X - &gt; flatten the slope</p>
+<p>fit v. predictions - R^2: on the data it was fit to - test / train<br>
+80% 20% RMSE: Lower is better training test 19,000 -&gt; 500-400 = 100^2 29,000 -&gt; 900 - 1200 = 300^2</p>
+<p>Cross Validation (CV) K-fold - if we have 100 records 1 2 3 4 5 20 20 20 20 20 -&gt; 1 becomes the tester, rest are trainers RMSE 100</p>
+<p>1 2 3 4 5 -&gt; 2 becomes the tester, rest are trainers RMSE 300</p>
+<p>5 times, average RMSE</p>
+<p>overfitting: - perfectly fit every points, error very small - learned the noise! may fail on the test the dataset</p>
+<p>how to peak features - multicollinearity -&gt; mostly harmless, but check</p>
+<p>homoskedashic: residuals very random or can have a systematic pattern: what if residuals become bigger if the income is high</p>
+</section>
+<section id="reflection" class="level2">
+<h2 class="anchored" data-anchor-id="reflection">Reflection</h2>
 </section>
 <section id="questions-i-still-have" class="level2">
 <h2 class="anchored" data-anchor-id="questions-i-still-have">Questions I Still Have</h2>
@@ -711,103 +716,81 @@ united degrees (angular)<br>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0904 Notes</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>Geoid    med_income_23                  Geoid   med_income_15</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>100     82000                           100     61000</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>200     31000                           200     27000</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>300     45000                           400     39000</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>GEOID must be the same (types of variable, like both integer)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>left_join(income_23, income_15, by = "GEOID")</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>Geoid   med_income_23     med_income_25   Geometery</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>100     82000             61000           Ploygon (75.37, 37.12)</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>200     31000             27000</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>300     45000             NA</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>get_acs(, geometery = TRUE)</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>GIS: shp, gdb, </span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>spacial data: sf: simple functions</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>coordinate reference systems (CRS)</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    Geographic                              </span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    united degrees (angular)   </span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    3d ellipsoid that try to simplify the earth surface + LOCATION</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    clark 1866 + meades ranch, KS -&gt; North American Datum of 1927 (NAD 27)</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    lat:equator + 90</span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    Long: 0-180 </span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    NAD 83 (earth centered)</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    WGS 84 (GPS standard)</span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>align your dataset</span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>when project the dataset: shapes, areas, distance, disrector can all be wrong</span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>cylindrical: the countries on the side (NOT EQUATOR) becomes bigger. equator: line of tangency, no distortion </span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>transverse cylindrical </span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>conic projection: good for northen countries (if from top)</span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>do not use a flat projection for US</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>Planar, </span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## 0925 Notes</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>GEOID   med_rent   med_inc   pct_renters   pct_ba   n_stations     rent_cv    geometery</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>100     1650       82000     0.71          0.64     3              9.8        (70.50, 60.9)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>where do rent exceed our expectation?</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>medium income: $30000  -&gt;   $1000</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="in">```````````````$100000 -&gt;   $3000</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="in">```````````````$255000 -&gt;   $6000</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="in">Y    =   f(x)    +    C</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="in">rent     income       everything else</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="in"> </span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="in">          linear    lassol ridge      logistic    trees    random forest    boosting   newral networks</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="in">rigid ---------------------------------------------------------------------------------------------------flexible</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="in">(easy to exlain &amp; interpret)</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="in">parametric                      vs.       non-parametric</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="in">assume a functional form</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="in">where it intersects</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="in">slope (b)</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="in">y = b2 + b1*x1 +E  </span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="in">b1: inference</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="in">y: prediction</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="in">R^2  </span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="in">about that line</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="in">observation - prediction = error</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="in">- least squares: minimum sum of squared errors</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="in">m1 &lt;- lm(med_rent ~ med_inc, data = tracts)</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="in">summary(m1)</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="in">                 estimate      SE    t_value     p_value</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="in">intersect         690         35      18.2        &lt;2e - 16</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="in">med_inc           0.0081      0.0005  16.2        &lt;2e - 16</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="in">                dollar of monthly rent per dollar of annual income in 10 thousand (81/month)</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="in">                </span></span>
 <span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>Projected coordinate systems</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>and x-y plan</span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>state plane</span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>units: ft or meter</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>good for local mapping</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>EPSG        NAME                      units</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>2272        PA south State Plane      US feet or US meters</span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>UTM         60 zones, no negative numbers</span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>5070        alber equal area         meters</span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>4326        WGS 84                    degrees</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>4269        NAD 83                    degrees</span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>How can we change the ordinance:</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>st_crs(data)</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>tells you what projection the data is on, need to know the units</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>st_set_crs() -&gt; 2272</span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>  adding the correct label, only when it is missing or wrong</span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>st_transform ()</span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>  change coordinate system</span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>st_buffer(station, 500)</span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>500 is in the units of the layer</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="in">Noise in Y goes in the residuals</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="in">- systematic variation (not noise)</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="in">- Noise in X - &gt; flatten the slope</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="in">fit v. predictions</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="in">- R^2: on the data it was fit to</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="in">- test / train  </span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="in">  80%                       20%                                               RMSE: Lower is better</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="in">  training                  test</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="in">                            19,000 -&gt; 500-400  = 100^2</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="in">                            29,000 -&gt; 900 - 1200 = 300^2</span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="in">Cross Validation (CV)</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="in">K-fold        - if we have 100 records</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="in">1   2   3   4   5</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="in">20  20  20  20  20         -&gt; 1 becomes the tester, rest are trainers    RMSE        100</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="in">1   2   3   4   5          -&gt; 2 becomes the tester, rest are trainers    RMSE        300</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="in">5 times, average RMSE</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="in">overfitting: </span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="in">- perfectly fit every points, error very small</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="in">- learned the noise! may fail on the test the dataset</span></span>
 <span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>------|----|</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a> A    | B  |</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>      <span class="pp">|</span>    <span class="pp">|</span></span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a> <span class="pp">|</span>--<span class="pp">|</span> <span class="pp">|</span>    <span class="pp">|</span></span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a> <span class="pp">|</span>C <span class="pp">|</span> <span class="pp">|</span>    <span class="pp">|</span></span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a> <span class="pp">|</span>--<span class="pp">|</span> <span class="pp">|</span>    <span class="pp">|</span></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>------|----|</span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>                  A,B     A,C     B,C</span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>st_intersect()    T       T      F</span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>St_touches()      T       F      F</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>St_within()       F       T      F</span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>example: how many tract near (0.5 mile) from the station</span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>st_filter()  -&gt; count of tracts that are completely within the buffer</span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>st_intersection()  -&gt; shapes change, break the shape up whenever it runs the command. more shapes</span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>st_union() -&gt; everything </span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>st_join(stations, tracts) -&gt; assign the tract attribute to the station </span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>st_distance() -&gt; returns a matrix with the distance between all the stations and tracts</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a><span class="in">            1 2 3 4 5 tracts</span></span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>stations 1</span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>         2</span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>         3</span>
-<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>         4</span>
-<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>         5</span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reflection</span></span>
-<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a><span class="fu">## Questions I Still Have</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="in">how to peak features</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="in">- multicollinearity -&gt; mostly harmless, but check</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a><span class="in">homoskedashic: residuals very random</span></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="in">or can have a systematic pattern: what if residuals become bigger if the income is high</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="in">## Reflection</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="in">## Questions I Still Have</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

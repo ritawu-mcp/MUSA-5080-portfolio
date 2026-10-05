@@ -64,12 +64,13 @@ Now repeat the Week 3 steps. **A data frame goes in, a data frame comes out.** T
 
 ```{r}
 #| label: reliability
+
 philly_tracts <- philly_tracts %>%
-  filter(total_popE > 0) %>%
-  mutate(
+  dplyr::filter(total_popE > 0) %>%
+  dplyr::mutate(
     med_inc_se = med_incM / 1.645,
     med_inc_cv = (med_inc_se / med_incE) * 100,
-    reliability = case_when(
+    reliability = dplyr::case_when(
       med_inc_cv < 12  ~ "High",
       med_inc_cv <= 40 ~ "Moderate",
       TRUE             ~ "Low"
@@ -371,10 +372,39 @@ philly_tracts_lowincome
 philly_tracts_LI <- philly_tracts %>%
   filter(med_incE < philly_tracts_lowincome)
 ```
+```{r}
+low_income_no_access <- philly_tracts %>%
+  filter(
+    med_incE < philly_tracts_lowincome,
+    dist_mi > 0.5
+  )
+nrow(low_income_no_access)
+```
 
 ```{r}
-#pct_cover > 80%?
+low_income_no_access %>%
+  count(reliability)
 
+```
+
+```{r}
+ggplot() +
+  geom_sf(
+    data = low_income_no_access,
+    aes(fill = reliability),
+    color = "white"
+  ) +
+  geom_sf(
+    data = stations,
+    color = "black",
+    size = 1.5
+  ) +
+  theme_void() +
+  labs(
+    title = "Low-Income Philadelphia Tracts Without Indego Access",
+    subtitle = "Low-income = bottom 25% of tract median household income; access = centroid within 0.5 miles of a station",
+    fill = "Income reliability"
+  )
 ```
 
 ### Scoring (for bragging rights, not grades)
