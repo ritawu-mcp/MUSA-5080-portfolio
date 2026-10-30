@@ -1,0 +1,74 @@
+---
+title: "Week 4:how to process geospatial data"
+description: "table function and acs data"
+date: 2026-09-18
+---
+
+## What We Did
+
+
+
+## Key Concepts
+
+
+
+## 0925 Notes
+Moran's I:
+- moran's I of residents - do errors cluster?
+= in your log model, it should fall as you add feature
+
+one number per house, the places where it's larger are your to-do list
+
+## from global to local
+Ii = zi/mi sum(Wij* Zij)
+
+mi = sum(zi)^2 / n 
+
+LISA - local indicator of spatial association
+
+                     HOUSE 1     HOUSE 2       HOUSE 3       HOUSE 4       HOUSE5
+                      100K        80K           20K           -50K          -70K
+divination             84          64            4             -66           -86
+e = (x1-xmean)         64          44           -1             -41           -66
+neighbors Average      5364       2814          -4             2706         5674
+                      1.17        0.61          0             
+
+5364/4584 = 1.17; 2814/4584 = 0.61; 
+Z^2 = 7056 + 4069 + 16 + 4356 + 7396 = 4584
+  
+Wij =  A  B  C  D  E
+      A
+      B
+      C
+      D
+      E
+
+-------------|
+    |    |   |
+-------------|
+    |  x |   |    X = Queen: diagenal is neighborhood
+-------------|    y = rook: only vertical & horizontal
+    |    |   |
+--------------   
+
+
+
+four quadrants, read as errors
+residual = actual - predicted, high = we guess too low
+
+                      neighbors under-predicted                       neighbors over-predicted
+I am under-predicted  high-high: a pocket the model undervalues,      high-low: one house worth more than its block
+                      a missing amenity                               something about the house
+                                                   
+I am over-predicted   low-high: one house worth less than its block   pocket of over-prediction
+                      something about the house
+
+Globa Moran's I           local moran's I
+one number                
+model: does it cluster    where ut cluster
+## Reflection
+
+
+
+## Questions I Still Have
+

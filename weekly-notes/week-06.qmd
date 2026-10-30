@@ -1,0 +1,88 @@
+---
+title: "Week 4:how to process geospatial data"
+description: "table function and acs data"
+date: 2026-09-18
+---
+
+## What We Did
+
+
+
+## Key Concepts
+
+
+
+## 0925 Notes
+reading a logged perdictor
+ rent = b0 + 210 log(income)
+ b reading: an 1% increarse in income goes about 210/100= $2.1 more rent
+ y reading: it lets the mdodel bend, so it doesn't over predict rent in the richest tracts
+ the rule: log x. keep y in dollars: b/100 = change in Y for a 1% change in X
+ 
+the fold that broke
+- one small district had all of its tracts in the test fold
+- so the model was trained without ever seeing that level, and it cannot predict it
+- fix: merge small groups before cross-validation
+the same problem comes back with neighborhoods: about 150 of them, and some have only a handful of sales
+
+same tools: new unit & shape
+              previous assignments            house price predictions
+unit          census tract (polygon)          single sale (point)
+n             ~400                            ~20,000
+count         crime in the tract              crimes within 660 ft of the house
+nearest       distance to nearest station     mean distance to the 5 nearest
+place         distance to city hall           same
+
+Not everysale is a sale
+- $1 transfer between family members, sheriff sales, and LLC shffles are record. decide what counts as a market sale is a modeling decison.
+  - filter(sale_price <= 10,000, total_livable_area >0, !st_is_empty(.))
+  
+- sales <- sales %>% 
+    mutate(
+      violent_660ft = length(st_intersection(st_buffer(.,660),violent)),
+      violent_knn5 = sapply(st_nn(., violent, k=5, returnDist = TRUE, progress = FALSE)$dist, mean)
+)
+count is 0 for al lot of house, while KNN is neer 0.
+
+
+today: we put a number on the error / residual.
+The spatial lag: my neighbors' average:
+- coord <_st_coordinates(sales)
+- w_knn <- nb2listw(knn2nb(knearneigh(coords, k=5)), style = "W")
+sale￥resid_lag <- lag.listw(w_knn, sales$resid)
+
+Me v. my neighborhoods
+ggplot(slaes, aes(resid, resid_lag))
+it can have a trend - the relationship between my house's residual and 5 neighbors residual 
+
+equation: EEWij (Xi-Xmean)(Xj - Xmean)/Ei(xi-Xmean)^2
+
+$$
+\hat{\beta}_1 =
+\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}
+{\sum_{i=1}^{n}(X_i-\bar X)^2}
+$$
+
+example: A 100, B 80, C 20, D -50, E -70
+If Xmean = 16,
+A*B (100-16)(80-16) = 5376
+B*C (80-16)(20-16)= 256
+C*D (20-16)(-50-16) = -264
+D*E (-50-16)(-70-16) = 5676
+sum = 11,044 *2 = 22088
+sum2 = (84+64+4-66-88)^2 = 22,920
+
+I n/EiEj*Wij = 5/8* 22,088/22,920 = 0.6
+
+mc <- moran.mc(sales$resud, w_knn, nsim = 499)
+mc$statistic
+moran.mc shuffles the residuals across 499 times. 
+
+
+spatial lag model - not good for prediction
+## Reflection
+
+
+
+## Questions I Still Have
+
